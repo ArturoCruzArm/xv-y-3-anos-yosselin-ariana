@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Invitación a los XV años de Yosselin y 3 años de Ariana - 9 de enero de 2027">
+    <meta name="theme-color" content="#dc2626">
+    <title>XV Años Yosselin & 3 Años Ariana</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css">
+    <link rel="stylesheet" href="css/index.css?v=1">
+    <style>
+    /* ── INTRO CINEMÁTICA ── */
+    #intro-overlay {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #000;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        cursor: pointer;
+        overflow: hidden;
+    }
+    #intro-overlay.fade-out {
+        animation: introFadeOut 1.2s ease forwards;
+    }
+    @keyframes introFadeOut {
+        to { opacity: 0; pointer-events: none; }
+    }
+
+    /* Grano de película */
+    #intro-overlay::before {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+        opacity: 0.35;
+        animation: grain 0.15s steps(1) infinite;
+        pointer-events: none;
+    }
+    @keyframes grain {
+        0%,100% { transform: translate(0,0); }
+        10%  { transform: translate(-2px, 1px); }
+        20%  { transform: translate(2px, -1px); }
+        30%  { transform: translate(-1px, 2px); }
+        40%  { transform: translate(1px, -2px); }
+        50%  { transform: translate(-2px, -1px); }
+        60%  { transform: translate(2px, 1px); }
+        70%  { transform: translate(-1px, -2px); }
+        80%  { transform: translate(1px, 2px); }
+        90%  { transform: translate(-2px, 2px); }
+    }
+
+    /* Barras letterbox */
+    .intro-bar {
+        position: absolute; left: 0; right: 0; height: 80px;
+        background: #000; z-index: 2;
+        transition: height 1s ease;
+    }
+    .intro-bar.top    { top: 0; }
+    .intro-bar.bottom { bottom: 0; }
+    #intro-overlay.fade-out .intro-bar { height: 0; }
+
+    /* Contenido central */
+    .intro-content {
+        position: relative; z-index: 3;
+        text-align: center; color: #fff;
+        padding: 20px;
+        max-width: 600px;
+    }
+
+    .intro-studio {
+        font-family: 'Lato', sans-serif;
+        font-size: clamp(0.65rem, 2vw, 0.85rem);
+        letter-spacing: 0.5em;
+        text-transform: uppercase;
+        color: #aaa;
+        opacity: 0;
+        animation: introFadeIn 1s ease 0.8s forwards;
+    }
+    .intro-presents {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+        letter-spacing: 0.2em;
+        font-style: italic;
+        color: #ccc;
+        margin: 6px 0 30px;
+        opacity: 0;
+        animation: introFadeIn 1s ease 1.6s forwards;
+    }
+    .intro-line {
+        width: 0; height: 1px; background: #dc2626;
+        margin: 18px auto;
+        animation: introLine 1.2s ease 2.2s forwards;
+    }
+    @keyframes introLine {
+        to { width: 120px; }
+    }
+    .intro-name {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.6rem, 6vw, 3rem);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: #fff;
+        line-height: 1.1;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: introSlideUp 1.2s cubic-bezier(.16,1,.3,1) 2.4s forwards;
+    }
+    .intro-surname {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(1rem, 3.5vw, 1.6rem);
+        font-weight: 300;
+        letter-spacing: 0.35em;
+        color: #e5e5e5;
+        text-transform: uppercase;
+        margin-top: 4px;
+        opacity: 0;
+        animation: introFadeIn 1s ease 3.2s forwards;
+    }
+    .intro-xv {
+        font-family: 'Lato', sans-serif;
+        font-size: clamp(0.7rem, 2vw, 0.9rem);
+        letter-spacing: 0.6em;
+        text-transform: uppercase;
+        color: #dc2626;
+        margin-top: 22px;
+        opacity: 0;
+        animation: introFadeIn 1s ease 3.8s forwards;
+    }
+    .intro-skip {
+        position: absolute; bottom: 90px; right: 24px;
+        font-family: 'Lato', sans-serif;
+        font-size: 0.7rem; letter-spacing: 0.2em;
+        color: #555; text-transform: uppercase;
+        z-index: 4;
+        animation: introFadeIn 1.5s ease 1s forwards;
+        opacity: 0;
+    }
+
+    @keyframes introFadeIn  { to { opacity: 1; } }
+    @keyframes introSlideUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <!-- ── INTRO CINEMÁTICA ── -->
+    <div id="intro-overlay" role="presentation" aria-hidden="true">
+        <div class="intro-bar top"></div>
+        <div class="intro-bar bottom"></div>
+        <div class="intro-content">
+            <p class="intro-studio">Producciones Foro 7</p>
+            <p class="intro-presents">presenta</p>
+            <div class="intro-line"></div>
+            <h1 class="intro-name">Yosselin & Ariana</h1>
+            <p class="intro-surname">Juarez Cervantes &bull; Solis Juarez</p>
+            <p class="intro-xv">XV Años &nbsp;&bull;&nbsp; 3 Años</p>
+        </div>
+        <p class="intro-skip">Toca para continuar</p>
+    </div>
+
+    <!-- Floating Elements -->
+    <div class="floating-element" style="left: 10%; animation-delay: 0s;">🦋</div>
+    <div class="floating-element" style="left: 30%; animation-delay: 3s;">🌸</div>
+    <div class="floating-element" style="left: 50%; animation-delay: 6s;">🦋</div>
+    <div class="floating-element" style="left: 70%; animation-delay: 9s;">🌺</div>
+    <div class="floating-element" style="left: 90%; animation-delay: 12s;">🦋</div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="crown"><i class="fas fa-crown"></i></div>
+            <h1 class="main-title">MIS XV AÑOS & MIS 3 AÑOS</h1>
+            <h2 class="quinceañera-name">Yosselin Guadalupe<br>Juarez Cervantes</h2>
+            <p style="font-size: 1.1rem; color: var(--cream); margin-top: 8px;">&</p>
+            <h2 class="quinceañera-name" style="font-size: 1.8rem;">Ariana Guadalupe<br>Solis Juarez</h2>
+            <div class="divider"></div>
+        </header>
+
+
+        <!-- Quote -->
+        <div class="quote">
+            "Hoy dejo atrás mi niñez y comienzo un nuevo sueño lleno de ilusiones y esperanzas. <br>
+            Te invito a compartir este momento mágico conmigo."
+        </div>
+
+        <!-- Countdown -->
+        <section>
+            <h2 class="section-title"><i class="fas fa-clock"></i> Cuenta Regresiva</h2>
+            <div class="countdown" id="countdown">
+                <div class="countdown-item">
+                    <span class="countdown-value" id="days">00</span>
+                    <span class="countdown-label">Días</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-value" id="hours">00</span>
+                    <span class="countdown-label">Horas</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-value" id="minutes">00</span>
+                    <span class="countdown-label">Minutos</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-value" id="seconds">00</span>
+                    <span class="countdown-label">Segundos</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Family -->
+        <section>
+            <h2 class="section-title"><i class="fas fa-users"></i> Mis Padres</h2>
+            <div class="family-section">
+                <div class="family-card">
+                    <div class="family-icon"><i class="fas fa-heart"></i></div>
+                    <div class="family-role">Con la bendición de</div>
+                    <div class="family-names">
+                        <em>Por confirmar</em>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Padrinos -->
+        <!-- Sin padrinos confirmados aún -->
+
+        <!-- Event Details -->
+        <section>
+            <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> Detalles del Evento</h2>
+            <div class="event-details">
+                <!-- Misa -->
+                <div class="event-card">
+                    <span class="event-icon"><i class="fas fa-church"></i></span>
+                    <h3 class="event-title">Misa de Acción de Gracias</h3>
+                    <div class="event-info">
+                        <strong><i class="fas fa-calendar-alt"></i> Fecha</strong>
+                        Sábado, 9 de enero de 2027
+                    </div>
+                    <div class="event-info">
+                        <strong><i class="fas fa-clock"></i> Hora</strong>
+                        Por confirmar
+                    </div>
+                    <div class="event-info">
+                        <strong><i class="fas fa-map-marker-alt"></i> Templo</strong>
+                        Por confirmar
+                    </div>
+                </div>
+
+                <!-- Recepción -->
+                <div class="event-card">
+                    <span class="event-icon"><i class="fas fa-champagne-glasses"></i></span>
+                    <h3 class="event-title">Recepción</h3>
+                    <div class="event-info">
+                        <strong><i class="fas fa-calendar-alt"></i> Fecha</strong>
+                        Sábado, 9 de enero de 2027
+                    </div>
+                    <div class="event-info">
+                        <strong><i class="fas fa-clock"></i> Hora</strong>
+                        Por confirmar
+                    </div>
+                    <div class="event-info">
+                        <strong><i class="fas fa-map-marker-alt"></i> Salón</strong>
+                        La Pradera<br>
+                        León, Gto.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dress Code -->
+        <section>
+            <h2 class="section-title"><i class="fas fa-tshirt"></i> Código de Vestimenta</h2>
+            <div class="dress-code">
+                <div class="dress-code-icons"><i class="fas fa-user-tie"></i> <i class="fas fa-female"></i></div>
+                <p class="dress-code-text">FORMAL / ELEGANTE</p>
+                <p style="margin-top: 15px; font-size: 1rem; color: var(--cream);">
+                    Te pedimos asistir con vestimenta formal para hacer de esta noche una ocasión especial
+                </p>
+            </div>
+        </section>
+
+        <!-- Social Share -->
+        <section class="social-share">
+            <h2 class="section-title"><i class="fas fa-share-alt"></i> Comparte</h2>
+            <p style="margin-bottom: 20px; color: var(--cream);">
+                Ayúdanos a compartir esta invitación con tus amigos y familiares
+            </p>
+            <div class="social-icons">
+                <a href="#" onclick="shareWhatsApp()" class="social-icon" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                <a href="#" onclick="shareFacebook()" class="social-icon" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" onclick="shareTwitter()" class="social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" onclick="copyLink()" class="social-icon" title="Copiar enlace"><i class="fas fa-link"></i></a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p style="font-size: 1.2rem; margin-bottom: 15px;"><i class="fas fa-star"></i> ¡Nos vemos el 9 de enero! <i class="fas fa-star"></i></p>
+            <div class="divider" style="margin: 20px auto;"></div>
+            <p>Producciones Foro 7</p>
+            <p>Fotografía, Video, Dron e Invitaciones Web</p>
+            <p><i class="fas fa-phone-alt"></i> Contacto: +52 1 314 124 9757</p>
+            <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">
+                © 2027 - XV Años Yosselin & 3 Años Ariana
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Countdown Timer - 9 de enero de 2027
+        function updateCountdown() {
+            const eventDate = new Date(2027, 0, 9, 17, 0, 0).getTime(); // Enero = 0 (0-indexed)
+            const now = new Date().getTime();
+            const distance = eventDate - now;
+
+            if (distance < 0) {
+                document.getElementById('countdown').innerHTML = '<p style="text-align: center; font-size: 1.5rem; color: var(--gold);">¡El evento ya comenzó!</p>';
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // Social Sharing
+        function shareWhatsApp() {
+            const text = '¡Estás invitado a los XV años de Yosselin y 3 años de Ariana! - 9 de enero de 2027';
+            const url = window.location.href;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+        }
+
+        function shareFacebook() {
+            const url = window.location.href;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function shareTwitter() {
+            const text = '¡Estás invitado a los XV años de Yosselin y 3 años de Ariana! - 9 de enero de 2027';
+            const url = window.location.href;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function copyLink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('¡Enlace copiado al portapapeles!');
+            }).catch(() => {
+                prompt('Copia este enlace:', url);
+            });
+        }
+    </script>
+
+    <script>
+    // ── INTRO CINEMÁTICA ──
+    (function() {
+        var overlay = document.getElementById('intro-overlay');
+        if (!overlay) return;
+
+        var today = new Date().toDateString();
+        if (localStorage.getItem('foro7_intro_yosselin_ariana') === today) {
+            overlay.style.display = 'none';
+            return;
+        }
+
+        function dismissIntro() {
+            overlay.classList.add('fade-out');
+            setTimeout(function() { overlay.style.display = 'none'; }, 1200);
+            localStorage.setItem('foro7_intro_yosselin_ariana', today);
+        }
+
+        var autoTimer = setTimeout(dismissIntro, 7500);
+
+        overlay.addEventListener('click', function() {
+            clearTimeout(autoTimer);
+            dismissIntro();
+        });
+        overlay.addEventListener('touchend', function() {
+            clearTimeout(autoTimer);
+            dismissIntro();
+        }, { passive: true });
+    })();
+    </script>
+    <script src="js/visitas.js?v=1"></script>
+
+    <script src="js/rsvp-guest.js"></script>
+<script src="js/foro7-footer.js"></script>
+</body>
+</html>
