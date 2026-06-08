@@ -45,6 +45,11 @@ const photos = [
     // Agregar fotos aquí cuando se suban las imágenes del evento
     // "imagenes/DSC_0001.webp","imagenes/DSC_2778.webp","imagenes/DSC_2779.webp","imagenes/DSC_2780.webp",
 ];
+// Thumbnail helper: usa thumb/ en grid para ahorrar RAM en moviles
+function getThumbPath(fullPath) {
+    return fullPath.replace('imagenes/', 'imagenes/thumb/');
+}
+
 
 // ── Configuración del evento ──
 const CONFIG = {
