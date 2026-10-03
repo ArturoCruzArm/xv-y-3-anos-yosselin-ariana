@@ -68,9 +68,9 @@
         const textEl   = document.getElementById('guestWelcomeText');
         const pasesEl  = document.getElementById('guestPassesText');
         const mesaEl   = document.getElementById('guestTableText');
-        if (section && textEl && pasesEl) {
+        if (section && textEl) {
             textEl.textContent = `${g.nombre}, nos encantará celebrar contigo`;
-            pasesEl.innerHTML  = `<i class="fa-solid fa-ticket"></i> ${g.pases_asignados} ${g.pases_asignados === 1 ? 'pase asignado' : 'pases asignados'}`;
+            if (pasesEl) pasesEl.innerHTML = `<i class="fa-solid fa-ticket"></i> ${g.pases_asignados} ${g.pases_asignados === 1 ? 'pase asignado' : 'pases asignados'}`;
             if (mesaEl && g.mesa_asignada) {
                 mesaEl.innerHTML = `<i class="fa-solid fa-utensils"></i> ${esc(g.mesa_asignada)}`;
                 mesaEl.hidden = false;
