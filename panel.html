@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel · XV Años Yosselin & 3 Años Ariana</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Italiana&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --acento: #6e2436; --acento2: #431724; --fondo: #f8f2e9;
+        --panel: #fffaf4; --texto: #302329; --suave: #7d6b70; --linea: #ead9d0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        font-family:'Manrope',system-ui,sans-serif; background:var(--fondo);
+        color:var(--texto); line-height:1.6; padding-bottom:3rem;
+        -webkit-font-smoothing:antialiased;
+    }
+    .cabecera {
+        background:linear-gradient(135deg, var(--acento2), var(--acento));
+        color:#fff; padding:2.6rem 1.2rem 2.2rem; text-align:center;
+    }
+    .cabecera h1 { font:400 clamp(1.6rem,6vw,2.4rem) Italiana,serif; }
+    .cabecera p { opacity:.85; font-size:.9rem; margin-top:.3rem; }
+    .wrap { max-width:860px; margin:0 auto; padding:0 16px; }
+    .intro {
+        background:var(--panel); border:1px solid var(--linea);
+        border-radius:12px; padding:1.1rem 1.3rem; margin:-1.4rem 0 1.8rem;
+        font-size:.9rem; color:var(--suave); box-shadow:0 4px 18px rgba(0,0,0,.06);
+    }
+    .intro strong { color:var(--texto); }
+    h2.grupo {
+        font-size:.74rem; letter-spacing:.2em; text-transform:uppercase;
+        color:var(--suave); margin:1.8rem 0 .8rem;
+    }
+    .cartas { display:grid; gap:12px; }
+    .carta {
+        display:flex; gap:14px; text-decoration:none; color:inherit;
+        background:var(--panel); border:1px solid var(--linea);
+        border-left:5px solid var(--acento);
+        border-radius:12px; padding:1.1rem 1.2rem;
+        transition:transform .15s, box-shadow .15s;
+    }
+    .carta:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
+    .carta.dia     { border-left-color:#2e9e5b; }
+    .carta.interno { border-left-color:#8a7a7e; }
+    .carta-icono { font-size:1.8rem; flex:0 0 auto; line-height:1; }
+    .carta-cuerpo h3 { font-size:1.02rem; margin-bottom:.25rem; }
+    .carta-cuerpo p { font-size:.87rem; color:var(--suave); }
+    .carta-meta {
+        display:flex; gap:14px; flex-wrap:wrap; margin-top:.6rem;
+        font-size:.74rem; color:var(--suave); opacity:.85;
+    }
+    .pie { text-align:center; color:var(--suave); font-size:.78rem; margin-top:2.4rem; }
+</style>
+</head>
+<body>
+
+<div class="cabecera">
+    <h1>XV Años de Yosselin &amp; 3 Años de Ariana</h1>
+    <p>Sábado 9 de enero de 2027</p>
+</div>
+
+<div class="wrap">
+    <div class="intro">
+        <strong>¿Qué es cada cosa?</strong> Esta es la lista de todas las páginas de este evento.
+        Toca cualquiera para abrirla. La de borde verde es para el <strong>día del evento</strong>;
+        las grises son <strong>documentos</strong> de referencia.
+    </div>
+
+    <h2 class="grupo">Para compartir e invitar</h2>
+    <div class="cartas">
+        <a class="carta" href="index.html">
+            <div class="carta-icono">💌</div>
+            <div class="carta-cuerpo">
+                <h3>La invitación</h3>
+                <p>Lo que ven los invitados: fecha, misa, recepción, cuenta regresiva, mesa de regalos y música. Con el enlace personal de cada invitado además aparecen su nombre, sus pases, su mesa, el formulario para confirmar y su <b>pase con código QR</b>.</p>
+                <div class="carta-meta">
+                    <span>👤 Los invitados</span>
+                    <span>🕐 Desde ya, hasta el día del evento</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <h2 class="grupo">Para organizar</h2>
+    <div class="cartas">
+        <a class="carta" href="invitados.html">
+            <div class="carta-icono">📋</div>
+            <div class="carta-cuerpo">
+                <h3>Gestión de invitados</h3>
+                <p>Aquí das de alta a cada invitado con sus pases y su mesa, le mandas su invitación por WhatsApp y ves quién ya confirmó. Genera el <b>código QR</b> de cada uno y muestra el <b>plano del salón</b> con quién se sienta dónde.</p>
+                <div class="carta-meta">
+                    <span>👤 Tú y la familia</span>
+                    <span>🕐 Antes del evento, para organizar</span>
+                </div>
+            </div>
+        </a>
+        <a class="carta" href="selector.html">
+            <div class="carta-icono">📸</div>
+            <div class="carta-cuerpo">
+                <h3>Selección de fotos</h3>
+                <p>Cuando estén listas las fotos de la sesión, aquí eliges las que van impresas.</p>
+                <div class="carta-meta">
+                    <span>👤 La familia</span>
+                    <span>🕐 Después de la sesión de fotos</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <h2 class="grupo">El día del evento</h2>
+    <div class="cartas">
+        <a class="carta dia" href="acceso.html">
+            <div class="carta-icono">🚪</div>
+            <div class="carta-cuerpo">
+                <h3>Control de acceso</h3>
+                <p>Para usar <b>en la entrada el día del evento</b>. Escaneas el QR del invitado con la cámara y te dice su nombre y su mesa en grande, y registras cuántos llegaron. También buscas por nombre, das de alta a quien no está en la lista y ves qué mesas tienen lugar.</p>
+                <div class="carta-meta">
+                    <span>👤 Quien recibe en la entrada</span>
+                    <span>🕐 El día del evento</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <h2 class="grupo">Documentos</h2>
+    <div class="cartas">
+        <a class="carta interno" href="logistica.html">
+            <div class="carta-icono">🗓️</div>
+            <div class="carta-cuerpo">
+                <h3>Logística</h3>
+                <p>Horarios del día, sesión de fotos, pagos y lo que falta por definir.</p>
+            </div>
+        </a>
+        <a class="carta interno" href="contrato.html">
+            <div class="carta-icono">📄</div>
+            <div class="carta-cuerpo">
+                <h3>Contrato</h3>
+                <p>Lo que incluye el servicio, el precio y los datos del evento.</p>
+            </div>
+        </a>
+    </div>
+
+    <p class="pie">FORO 7 · Fotografía, Video e Invitaciones Web · 477 920 3776</p>
+</div>
+
+<script src="js/visitas.js?v=1"></script>
+</body>
+</html>

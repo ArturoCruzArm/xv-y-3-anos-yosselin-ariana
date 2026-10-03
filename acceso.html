@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0c0d">
+<title>Acceso · Control de llegadas</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+    /* ============================================================
+       CONTROL DE ACCESO — se usa en la puerta, con una mano y
+       con prisa. Todo grande, alto contraste, pocos pasos.
+       ============================================================ */
+    :root {
+        --fondo:    #0f0c0d;
+        --panel:    #1b1618;
+        --panel-2:  #251f21;
+        --linea:    #3a3134;
+        --texto:    #f6f2f3;
+        --suave:    #a9999d;
+        --ok:       #2e9e5b;
+        --aviso:    #d99427;
+        --error:    #c0392b;
+        --acento:   #9c3049;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+        font-family:'Montserrat',system-ui,sans-serif;
+        background:var(--fondo); color:var(--texto);
+        min-height:100svh; padding-bottom:2rem;
+        -webkit-font-smoothing:antialiased;
+    }
+    .wrap { max-width:560px; margin:0 auto; padding:0 14px; }
+
+    /* ── Barra superior con el marcador ── */
+    header {
+        position:sticky; top:0; z-index:50;
+        background:rgba(15,12,13,.97); backdrop-filter:blur(8px);
+        border-bottom:1px solid var(--linea); padding:12px 14px;
+    }
+    .marcador { display:flex; gap:8px; max-width:560px; margin:0 auto; }
+    .m-caja {
+        flex:1; background:var(--panel); border:1px solid var(--linea);
+        border-radius:10px; padding:8px 6px; text-align:center;
+    }
+    .m-num { display:block; font-size:1.6rem; font-weight:900; line-height:1.1; }
+    .m-lbl { font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--suave); }
+    .m-caja.llegaron .m-num { color:var(--ok); }
+    .m-caja.faltan   .m-num { color:var(--aviso); }
+
+    h1 { font-size:1.1rem; font-weight:900; text-align:center; margin:18px 0 4px; }
+    .sub { text-align:center; color:var(--suave); font-size:.78rem; margin-bottom:18px; }
+
+    /* ── Botones ── */
+    .btn {
+        display:flex; align-items:center; justify-content:center; gap:10px;
+        width:100%; padding:18px; border:none; border-radius:12px;
+        font-family:inherit; font-size:1rem; font-weight:900;
+        letter-spacing:.06em; text-transform:uppercase;
+        cursor:pointer; margin-bottom:10px;
+        background:var(--panel-2); color:var(--texto);
+        border:1px solid var(--linea);
+    }
+    .btn.principal { background:var(--acento); border-color:var(--acento); color:#fff; }
+    .btn.verde     { background:var(--ok);     border-color:var(--ok);     color:#fff; }
+    .btn:active { transform:scale(.985); }
+    .btn:disabled { opacity:.5; }
+    .btn.chico { padding:12px; font-size:.8rem; }
+
+    /* ── Escáner ── */
+    /* El contenedor necesita altura propia: el <video> que inserta la
+       librería no la impone y el div se quedaba en 0 px. */
+    #lector { width:100%; border-radius:12px; overflow:hidden; background:#000; }
+    #lector:empty { display:none; margin:0; }
+    #lector.activo { min-height:300px; margin-bottom:12px; }
+    #lector video {
+        width:100% !important; height:auto !important;
+        display:block; border-radius:12px; object-fit:cover;
+    }
+    /* La librería deja un canvas de trabajo y una imagen de ayuda
+       que no tienen por qué verse. */
+    #lector canvas, #lector img { display:none !important; }
+    #lector > div { border:none !important; }
+
+    /* ── Búsqueda manual ── */
+    .buscador { position:relative; margin-bottom:12px; }
+    .buscador input {
+        width:100%; padding:16px 14px; font-size:1rem; font-family:inherit;
+        background:var(--panel); color:var(--texto);
+        border:1px solid var(--linea); border-radius:12px;
+    }
+    .buscador input:focus { outline:none; border-color:var(--acento); }
+    .resultados { margin-top:6px; }
+    .r-item {
+        display:flex; justify-content:space-between; align-items:center; gap:10px;
+        background:var(--panel); border:1px solid var(--linea);
+        border-radius:10px; padding:13px 14px; margin-bottom:6px; cursor:pointer;
+    }
+    .r-item:active { background:var(--panel-2); }
+    .r-nombre { font-weight:700; font-size:.95rem; }
+    .r-meta { font-size:.74rem; color:var(--suave); margin-top:2px; }
+    .r-mesa {
+        flex:0 0 auto; background:var(--panel-2); border:1px solid var(--linea);
+        border-radius:8px; padding:6px 10px; font-weight:900; font-size:.85rem;
+    }
+    .r-item.ya .r-mesa { background:rgba(46,158,91,.18); border-color:var(--ok); color:var(--ok); }
+
+    /* ── Ficha del invitado ── */
+    .ficha { display:none; }
+    .ficha.activa { display:block; }
+    .ficha-caja {
+        background:var(--panel); border:1px solid var(--linea);
+        border-top:5px solid var(--acento);
+        border-radius:14px; padding:22px 18px; text-align:center; margin-bottom:12px;
+    }
+    .ficha-caja.ya-llego { border-top-color:var(--ok); }
+    .ficha-nombre { font-size:1.5rem; font-weight:900; line-height:1.2; }
+    .ficha-estado { font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--suave); margin-top:6px; }
+    .mesa-grande {
+        margin:18px auto 6px; padding:16px;
+        background:var(--panel-2); border:2px solid var(--acento);
+        border-radius:12px; max-width:260px;
+    }
+    .mesa-grande .et { font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:var(--suave); }
+    .mesa-grande .val { font-size:2.6rem; font-weight:900; line-height:1.1; }
+    .mesa-grande.sin { border-color:var(--aviso); }
+    .mesa-grande.sin .val { font-size:1.1rem; color:var(--aviso); }
+
+    .pases-fila { display:flex; align-items:center; justify-content:center; gap:14px; margin:16px 0 4px; }
+    .pases-fila button {
+        width:52px; height:52px; border-radius:50%; border:1px solid var(--linea);
+        background:var(--panel-2); color:var(--texto);
+        font-size:1.7rem; font-weight:700; cursor:pointer; line-height:1;
+    }
+    .pases-fila button:active { background:var(--acento); }
+    #pasesLlegaron { font-size:2.4rem; font-weight:900; min-width:60px; }
+    .pases-et { font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--suave); }
+
+    /* El aviso del pase repetido: lo primero que se ve al abrir la
+       ficha, y cambia de color según qué tan grave es. */
+    .aviso-ya {
+        border-radius:12px; padding:14px 16px; font-size:.85rem;
+        margin-bottom:14px; line-height:1.5;
+        background:rgba(46,158,91,.14); border:1px solid var(--ok); color:#9fe0b8;
+    }
+    .aviso-ya .tit {
+        display:block; font-size:1rem; font-weight:900; margin-bottom:5px;
+        letter-spacing:.02em;
+    }
+    .aviso-ya .veces {
+        display:inline-block; margin-top:8px; font-size:.7rem; font-weight:700;
+        letter-spacing:.1em; text-transform:uppercase; opacity:.8;
+    }
+    /* Faltaba gente y ahora llegó: hay que sumar, nada más. */
+    .aviso-ya.parcial {
+        background:rgba(217,148,39,.18); border-color:var(--aviso); color:#f4cf95;
+    }
+    .aviso-ya.parcial .tit { color:#f0c076; }
+    /* El pase ya estaba completo: aquí sí hay que detenerse. */
+    .aviso-ya.completo {
+        background:rgba(192,57,43,.2); border-color:var(--error); color:#f3b5ad;
+        box-shadow:0 0 0 3px rgba(192,57,43,.16);
+    }
+    .aviso-ya.completo .tit { color:#ff9c8e; font-size:1.08rem; }
+    .aviso-declino {
+        background:rgba(192,57,43,.14); border:1px solid var(--error); color:#f0a79f;
+        border-radius:10px; padding:12px; font-size:.85rem; margin-bottom:12px;
+    }
+
+    .toast {
+        position:fixed; left:50%; bottom:24px; transform:translate(-50%,20px);
+        background:var(--ok); color:#fff; padding:14px 22px; border-radius:999px;
+        font-weight:700; font-size:.9rem; opacity:0; pointer-events:none;
+        transition:opacity .2s, transform .2s; z-index:9000; max-width:90vw; text-align:center;
+    }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .toast.err { background:var(--error); }
+
+    .pie { text-align:center; color:var(--suave); font-size:.72rem; margin-top:24px; }
+    .pie a { color:var(--texto); }
+    .caja-error {
+        background:rgba(192,57,43,.14); border:1px solid var(--error);
+        border-radius:12px; padding:14px 16px; margin-bottom:12px; font-size:.88rem;
+    }
+    .caja-error strong { display:block; color:#f5b0a8; margin-bottom:4px; font-size:.95rem; }
+    .caja-error span { color:var(--suave); }
+    /* ── Atajos de la vista principal ── */
+    .atajos { display:flex; gap:8px; margin-top:14px; }
+    .atajos .btn { margin:0; padding:14px 10px; font-size:.78rem; }
+
+    /* ── Alta en la puerta ── */
+    .campo { margin-bottom:14px; }
+    .campo label {
+        display:block; font-size:.66rem; letter-spacing:.14em;
+        text-transform:uppercase; color:var(--suave); margin-bottom:6px;
+    }
+    .campo input {
+        width:100%; padding:15px 14px; border-radius:12px;
+        border:1px solid var(--linea); background:var(--panel);
+        color:var(--texto); font-family:inherit; font-size:1rem;
+    }
+    .campo input:focus { outline:none; border-color:var(--acento); }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .chip {
+        background:var(--panel-2); border:1px solid var(--linea); color:var(--texto);
+        border-radius:999px; padding:8px 13px; font-family:inherit;
+        font-size:.78rem; font-weight:700; cursor:pointer;
+    }
+    .chip .libre { color:var(--ok); font-weight:900; }
+    .chip.nueva { border-style:dashed; color:var(--suave); }
+    .chip:active { background:var(--linea); }
+
+    /* ── Mesas ── */
+    .cap-fila {
+        display:flex; align-items:center; gap:10px; justify-content:center;
+        margin-bottom:14px; color:var(--suave); font-size:.78rem;
+    }
+    .cap-fila input {
+        width:62px; padding:8px; text-align:center; border-radius:8px;
+        border:1px solid var(--linea); background:var(--panel);
+        color:var(--texto); font-family:inherit; font-size:1rem; font-weight:900;
+    }
+    .mesa-item {
+        background:var(--panel); border:1px solid var(--linea);
+        border-radius:12px; padding:13px 15px; margin-bottom:9px;
+    }
+    .mesa-item.libre  { border-color:var(--ok); }
+    .mesa-item.llena  { opacity:.55; }
+    .mesa-cab { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+    .mesa-nom { font-size:1.05rem; font-weight:900; }
+    .mesa-hueco { font-size:.8rem; font-weight:900; color:var(--ok); }
+    .mesa-hueco.cero { color:var(--suave); }
+    .sillas { display:flex; flex-wrap:wrap; gap:4px; margin:9px 0 7px; }
+    .silla { width:13px; height:13px; border-radius:50%; background:var(--linea); }
+    .silla.ocupada  { background:var(--ok); }
+    .silla.apartada { background:var(--aviso); }
+    .silla.extra    { background:var(--error); }
+    .mesa-meta { font-size:.73rem; color:var(--suave); line-height:1.5; }
+    .leyenda { font-size:.7rem; color:var(--suave); text-align:center; margin:2px 0 16px; line-height:1.7; }
+    .leyenda i { display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:middle; }
+
+    .aviso-extra {
+        background:rgba(217,148,39,.16); border:1px solid var(--aviso);
+        border-radius:12px; padding:13px 15px; margin-bottom:12px; font-size:.85rem;
+    }
+    .aviso-extra strong { display:block; color:#f0c076; margin-bottom:3px; }
+
+    .oculto { display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+    <div class="marcador">
+        <div class="m-caja llegaron"><span class="m-num" id="mLlegaron">0</span><span class="m-lbl">Llegaron</span></div>
+        <div class="m-caja faltan"><span class="m-num" id="mFaltan">0</span><span class="m-lbl">Faltan</span></div>
+        <div class="m-caja"><span class="m-num" id="mPersonas">0</span><span class="m-lbl">Esperadas</span></div>
+    </div>
+</header>
+
+<div class="wrap">
+    <h1 id="tituloEvento">Control de acceso</h1>
+    <p class="sub" id="subEvento">Cargando…</p>
+
+    <!-- ── Vista principal ── -->
+    <div id="vistaPrincipal">
+        <button class="btn principal" id="btnEscanear">📷 Escanear código</button>
+        <div id="cajaError" class="caja-error oculto"></div>
+        <div id="lector"></div>
+        <button class="btn chico oculto" id="btnDetener">Detener cámara</button>
+
+        <div class="buscador">
+            <input type="search" id="buscar" placeholder="…o busca por nombre" autocomplete="off">
+        </div>
+        <div class="resultados" id="resultados"></div>
+
+        <!-- En la puerta llega gente que no está en ninguna lista, y hay
+             que saber dónde queda lugar para sentarla. -->
+        <div class="atajos">
+            <button class="btn chico" id="btnAlta">➕ No está en la lista</button>
+            <button class="btn chico" id="btnMesas">🪑 Ver mesas</button>
+        </div>
+    </div>
+
+    <!-- ── Ficha del invitado ── -->
+    <div class="ficha" id="ficha">
+        <div id="avisoYa" class="aviso-ya oculto"></div>
+
+        <div class="ficha-caja" id="fichaCaja">
+            <div class="ficha-nombre" id="fNombre">—</div>
+            <div class="ficha-estado" id="fEstado"></div>
+
+            <div class="mesa-grande" id="fMesaCaja">
+                <div class="et">Mesa</div>
+                <div class="val" id="fMesa">—</div>
+            </div>
+
+            <div class="pases-fila">
+                <button type="button" id="btnMenos" aria-label="Menos personas">−</button>
+                <span id="pasesLlegaron">1</span>
+                <button type="button" id="btnMas" aria-label="Más personas">+</button>
+            </div>
+            <div class="pases-et" id="pasesEtiqueta">personas llegando</div>
+        </div>
+
+        <div id="avisoExtra" class="aviso-extra oculto"></div>
+        <div id="avisoDeclino" class="aviso-declino oculto"></div>
+
+        <button class="btn verde oculto" id="btnCompletarPase">✓ Llegó el resto</button>
+        <button class="btn verde" id="btnRegistrar">✓ Registrar llegada</button>
+        <button class="btn chico" id="btnSepararGrupo">Registrar aparte a los de más</button>
+        <button class="btn chico" id="btnVolver">← Volver</button>
+    </div>
+
+    <!-- ── Alta en la puerta ──────────────────────────────────
+         Para el invitado de palabra, el de la invitación genérica
+         que nunca se registró, o el grupo de más que conviene
+         anotar por separado. -->
+    <div class="ficha" id="alta">
+        <h2 style="font-size:1rem;font-weight:900;margin-bottom:4px;">Registrar en la puerta</h2>
+        <p class="sub" style="margin-bottom:16px;">Queda anotado como que ya entró</p>
+
+        <div class="campo">
+            <label for="aNombre">Nombre</label>
+            <input type="text" id="aNombre" placeholder="Quién llega" autocomplete="off">
+        </div>
+
+        <div class="campo">
+            <label>Cuántas personas</label>
+            <div class="pases-fila">
+                <button type="button" id="aMenos" aria-label="Menos personas">−</button>
+                <span id="aPersonas">1</span>
+                <button type="button" id="aMas" aria-label="Más personas">+</button>
+            </div>
+        </div>
+
+        <div class="campo">
+            <label for="aMesa">Mesa</label>
+            <input type="text" id="aMesa" placeholder="Número o nombre de la mesa" autocomplete="off">
+            <div class="chips" id="aMesasSugeridas"></div>
+        </div>
+
+        <div class="campo">
+            <label for="aNota">Nota (opcional)</label>
+            <input type="text" id="aNota" placeholder="Ej. invitado por la mamá" autocomplete="off">
+        </div>
+
+        <button class="btn verde" id="btnGuardarAlta">✓ Registrar y dejar pasar</button>
+        <button class="btn chico" id="btnCancelarAlta">← Volver</button>
+    </div>
+
+    <!-- ── Mesas ─────────────────────────────────────────────
+         Para saber dónde sentar a quien llegó sin lugar: qué mesas
+         están vacías y cuáles solo esperan a gente que no llega. -->
+    <div class="ficha" id="mesas">
+        <h2 style="font-size:1rem;font-weight:900;margin-bottom:4px;">Mesas</h2>
+        <p class="sub" style="margin-bottom:14px;" id="mesasResumen">—</p>
+
+        <div class="cap-fila">
+            <label for="capMesaPuerta">Lugares por mesa</label>
+            <input type="number" id="capMesaPuerta" min="2" max="20" value="10">
+        </div>
+
+        <p class="leyenda">
+            <i style="background:#2e9e5b"></i> ya llegó ·
+            <i style="background:#d99427"></i> apartado, no ha llegado ·
+            <i style="background:#3a3134"></i> libre
+        </p>
+
+        <div id="mesasLista"></div>
+        <button class="btn chico" id="btnCerrarMesas">← Volver</button>
+    </div>
+
+    <p class="pie">
+        FORO 7 · <a href="panel.html">Panel</a> · <a href="invitados.html">Gestión de invitados</a>
+    </p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function () {
+'use strict';
+
+const SLUG    = 'xv-y-3-anos-yosselin-ariana';
+const SB_URL  = 'https://nzpujmlienzfetqcgsxz.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56cHVqbWxpZW56ZmV0cWNnc3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2ODYzMzYsImV4cCI6MjA5MDI2MjMzNn0.xl3lsb-KYj5tVLKTnzpbsdEGoV9ySnswH4eyRuyEH1s';
+const SB_H    = { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Content-Type': 'application/json' };
+
+let eventoId = null;
+let invitados = [];
+let actual = null;
+let lector = null;
+let escaneando = false;
+
+const $ = function (id) { return document.getElementById(id); };
+
+function toast(msg, esError) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.toggle('err', !!esError);
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(function () { t.classList.remove('show'); }, 2600);
+}
+
+function mostrarError(titulo, detalle) {
+    const c = $('cajaError');
+    c.innerHTML = '<strong>' + titulo + '</strong><span>' + (detalle || '') + '</span>';
+    c.classList.remove('oculto');
+    vibrar([60, 60, 60]);
+}
+
+function ocultarError() { $('cajaError').classList.add('oculto'); }
+
+function vibrar(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} } }
+
+/* ── Carga ────────────────────────────────────────────────── */
+async function cargar() {
+    try {
+        const evR = await fetch(SB_URL + '/rest/v1/eventos?slug=eq.' + SLUG + '&select=id,nombre,fecha_evento&limit=1', { headers: SB_H });
+        const [ev] = await evR.json();
+        if (!ev) { $('subEvento').textContent = 'No se encontró el evento.'; return; }
+        eventoId = ev.id;
+        $('tituloEvento').textContent = ev.nombre;
+
+        const gR = await fetch(SB_URL + '/rest/v1/invitados?evento_id=eq.' + eventoId +
+                               '&select=id,nombre,telefono,pases_asignados,pases_confirmados,pases_llegaron,mesa_asignada,status,asiste,token,checkin_at&order=nombre.asc',
+                               { headers: SB_H });
+        invitados = await gR.json();
+        pintarMarcador();
+    } catch (e) {
+        $('subEvento').textContent = 'Sin conexión. Revisa la señal e intenta de nuevo.';
+    }
+}
+
+function pintarMarcador() {
+    /* Todo en personas, igual que el panel: una invitación de 10
+       pases son 10 personas que hay que ver entrar. */
+    let llegaron = 0, esperadas = 0;
+    invitados.forEach(function (g) {
+        if (g.status === 'declinada' || g.asiste === false) return;   // no viene
+        esperadas += (g.pases_confirmados || g.pases_asignados || 0);
+        if (g.checkin_at) llegaron += (g.pases_llegaron || 0);
+    });
+    $('mLlegaron').textContent = llegaron;
+    $('mFaltan').textContent   = Math.max(0, esperadas - llegaron);
+    $('mPersonas').textContent = esperadas;
+
+    /* Los que entraron de más, contados invitación por invitación: si
+       se suma todo y se resta, los que aún no llegan tapan a los que
+       llegaron de sobra y el dato nunca aparece. */
+    let demas = 0;
+    invitados.forEach(function (g) {
+        if (!g.checkin_at) return;
+        demas += Math.max(0, (g.pases_llegaron || 0) -
+                             (g.pases_confirmados || g.pases_asignados || 0));
+    });
+    const inv = invitados.length;
+    $('subEvento').textContent =
+        (inv === 1 ? '1 invitación · ' + esperadas + (esperadas === 1 ? ' persona' : ' personas')
+                   : inv + ' invitaciones · ' + esperadas + ' personas') +
+        (demas ? ' · ' + demas + ' de más' : '');
+}
+
+/* ── Búsqueda manual: en la puerta siempre hay quien no trae
+      el código, así que esto no es un extra, es lo normal. ── */
+function normalizar(s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+$('buscar').addEventListener('input', function () {
+    const q = normalizar(this.value.trim());
+    const cont = $('resultados');
+    if (q.length < 2) { cont.innerHTML = ''; return; }
+    const hits = invitados.filter(function (g) {
+        return normalizar(g.nombre).indexOf(q) !== -1 || (g.telefono || '').indexOf(q) !== -1;
+    }).slice(0, 12);
+    if (!hits.length) { cont.innerHTML = '<div class="r-item"><div class="r-nombre">Sin resultados</div></div>'; return; }
+    cont.innerHTML = hits.map(function (g) {
+        const pases = g.pases_confirmados || g.pases_asignados || 1;
+        return '<div class="r-item' + (g.checkin_at ? ' ya' : '') + '" data-id="' + g.id + '">' +
+               '<div><div class="r-nombre">' + g.nombre + '</div>' +
+               '<div class="r-meta">' + pases + (pases === 1 ? ' persona' : ' personas') +
+               (g.checkin_at ? ' · ya llegó' : '') + '</div></div>' +
+               '<div class="r-mesa">' + (g.mesa_asignada || '—') + '</div></div>';
+    }).join('');
+    Array.prototype.forEach.call(cont.querySelectorAll('.r-item[data-id]'), function (el) {
+        el.addEventListener('click', function () { abrirFicha(el.dataset.id); });
+    });
+});
+
+/* ── Ficha ────────────────────────────────────────────────── */
+function abrirFicha(id, origen) {
+    const g = invitados.filter(function (x) { return x.id === id; })[0];
+    if (!g) return;
+    actual = g;
+
+    $('fNombre').textContent = g.nombre;
+    const mesa = (g.mesa_asignada || '').trim();
+    $('fMesa').textContent = mesa || 'Sin asignar';
+    $('fMesaCaja').classList.toggle('sin', !mesa);
+    $('fichaCaja').classList.toggle('ya-llego', !!g.checkin_at);
+
+    const etiquetas = { confirmada: 'Confirmó asistencia', declinada: 'Dijo que no asistiría',
+                        vista: 'Vio la invitación', enviada: 'Invitación enviada', pendiente: 'Sin respuesta' };
+    $('fEstado').textContent = etiquetas[g.status] || '';
+
+    const sugeridos = g.pases_llegaron || g.pases_confirmados || g.pases_asignados || 1;
+    $('pasesLlegaron').textContent = sugeridos;
+    revisarExcedente();
+
+    /* El contador es SIEMPRE el total de personas que ya entraron de
+       esta invitación, no las que acaban de llegar: si vienen en dos
+       tandas, la segunda vez se sube hasta el total. */
+    const traia = g.pases_confirmados || g.pases_asignados || 0;
+    $('pasesEtiqueta').textContent = g.checkin_at
+        ? 'personas de esta invitación que ya entraron (total)'
+        : 'personas llegando';
+
+    avisarPaseRepetido(g, traia, origen);
+
+    const dec = $('avisoDeclino');
+    if (g.status === 'declinada' || g.asiste === false) {
+        dec.textContent = '⚠ Este invitado había dicho que no asistiría. Puedes registrarlo de todos modos.';
+        dec.classList.remove('oculto');
+    } else {
+        dec.classList.add('oculto');
+    }
+
+    $('vistaPrincipal').classList.add('oculto');
+    $('ficha').classList.add('activa');
+    window.scrollTo({ top: 0 });
+}
+
+/* ── Cuántas veces se ha escaneado cada pase en este aparato ──
+   Es el dato que delata un enlace compartido: el mismo código
+   pasando tres veces por la puerta. Vive en el teléfono que está
+   escaneando, que es donde importa. */
+const ESCANEOS_KEY = 'foro7_escaneos_' + SLUG;
+
+function leerEscaneos() {
+    try { return JSON.parse(localStorage.getItem(ESCANEOS_KEY)) || {}; }
+    catch (e) { return {}; }
+}
+
+function contarEscaneo(token) {
+    const m = leerEscaneos();
+    m[token] = (m[token] || 0) + 1;
+    try { localStorage.setItem(ESCANEOS_KEY, JSON.stringify(m)); } catch (e) {}
+    return m[token];
+}
+
+/* ── El aviso del pase repetido ───────────────────────────────
+   Dos situaciones muy distintas que no se pueden ver igual:
+
+     · Faltaba gente de esa invitación → llegó el resto. Normal.
+     · El pase ya estaba completo → o lo compartieron, o son
+       personas de más. Hay que detenerse.  */
+function avisarPaseRepetido(g, traia, origen) {
+    const ya  = $('avisoYa');
+    const btnResto = $('btnCompletarPase');
+
+    if (!g.checkin_at) {
+        ya.classList.add('oculto');
+        ya.className = 'aviso-ya oculto';
+        btnResto.classList.add('oculto');
+        $('btnRegistrar').textContent = '✓ Registrar llegada';
+        return;
+    }
+
+    const hora = new Date(g.checkin_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const entraron = g.pases_llegaron || 0;
+    const faltan   = Math.max(0, traia - entraron);
+    const veces    = (leerEscaneos()[g.token] || 0);
+
+    let clase, titulo, cuerpo;
+    if (faltan > 0) {
+        clase  = 'parcial';
+        titulo = '⚠️ Este pase ya pasó';
+        cuerpo = 'Entraron <strong>' + entraron + ' de ' + traia + '</strong> a las ' + hora + '. ' +
+                 'Faltaban ' + faltan + (faltan === 1 ? ' persona' : ' personas') + '.<br>' +
+                 'Si es el resto del grupo, dale a «Llegó el resto».';
+        btnResto.textContent = '✓ Llegó el resto (' + faltan + ' más)';
+        btnResto.classList.remove('oculto');
+    } else {
+        clase  = 'completo';
+        titulo = '⛔ Este pase ya está completo';
+        cuerpo = '<strong>' + entraron + ' de ' + traia + '</strong> ya entraron a las ' + hora + '. ' +
+                 'No falta nadie de esta invitación.<br>' +
+                 'Si hay más gente afuera, traen el enlace compartido: son personas de más.';
+        btnResto.classList.add('oculto');
+    }
+
+    ya.className = 'aviso-ya ' + clase;
+    ya.innerHTML = '<span class="tit">' + titulo + '</span>' + cuerpo +
+                   (veces > 1 ? '<span class="veces">Se ha escaneado ' + veces + ' veces</span>' : '');
+    ya.classList.remove('oculto');
+    $('btnRegistrar').textContent = '✓ Actualizar llegada';
+
+    /* Vibrar distinto según el caso: en la puerta se siente antes de
+       leerse. Corto-corto si solo faltaba gente, largo si el pase ya
+       estaba completo. */
+    if (origen === 'escaneo') {
+        vibrar(faltan > 0 ? [70, 70, 70] : [220, 90, 220, 90, 220]);
+    }
+}
+
+/* Llegó el resto del grupo: el contador se va al total de la
+   invitación, que es lo que se quiere el 99% de las veces. */
+$('btnCompletarPase').addEventListener('click', function () {
+    if (!actual) return;
+    $('pasesLlegaron').textContent = actual.pases_confirmados || actual.pases_asignados || 0;
+    revisarExcedente();
+    $('btnRegistrar').focus();
+});
+
+function cerrarFicha() {
+    actual = null;
+    $('ficha').classList.remove('activa');
+    $('vistaPrincipal').classList.remove('oculto');
+    $('buscar').value = '';
+    $('resultados').innerHTML = '';
+}
+
+$('btnVolver').addEventListener('click', cerrarFicha);
+
+/* Una invitación para 3 se comparte y llegan 6: hay que verlo en el
+   momento, no al final de la noche cuando ya no hay sillas. */
+function revisarExcedente() {
+    const caja = $('avisoExtra');
+    if (!caja) return;
+    if (!actual) { caja.classList.add('oculto'); $('btnSepararGrupo').classList.add('oculto'); return; }
+    const traia = actual.pases_confirmados || actual.pases_asignados || 0;
+    const ahora = parseInt($('pasesLlegaron').textContent, 10) || 0;
+    const extra = ahora - traia;
+    if (extra > 0) {
+        const mesa = (actual.mesa_asignada || '').trim();
+        caja.innerHTML = '<strong>Llegan ' + extra + (extra === 1 ? ' persona de más' : ' personas de más') + '</strong>' +
+                         'Su invitación era para ' + traia + '. Puedes dejarlos en este registro, ' +
+                         'o anotarlos aparte para darles su propia mesa' +
+                         (mesa ? ' (esta es la mesa ' + mesa + ').' : '.');
+        caja.classList.remove('oculto');
+        $('btnSepararGrupo').classList.remove('oculto');
+    } else {
+        caja.classList.add('oculto');
+        $('btnSepararGrupo').classList.add('oculto');
+    }
+}
+
+$('btnMas').addEventListener('click', function () {
+    $('pasesLlegaron').textContent = Math.min(30, parseInt($('pasesLlegaron').textContent, 10) + 1);
+    revisarExcedente();
+});
+$('btnMenos').addEventListener('click', function () {
+    $('pasesLlegaron').textContent = Math.max(0, parseInt($('pasesLlegaron').textContent, 10) - 1);
+    revisarExcedente();
+});
+
+/* ── Registrar la llegada ─────────────────────────────────── */
+$('btnRegistrar').addEventListener('click', async function () {
+    if (!actual) return;
+    const btn = this;
+    const n = parseInt($('pasesLlegaron').textContent, 10) || 0;
+    btn.disabled = true;
+    btn.textContent = 'Guardando…';
+    try {
+        const r = await fetch(SB_URL + '/rest/v1/invitados?id=eq.' + actual.id, {
+            method: 'PATCH',
+            headers: Object.assign({}, SB_H, { Prefer: 'return=representation' }),
+            body: JSON.stringify({ checkin_at: new Date().toISOString(), pases_llegaron: n })
+        });
+        if (!r.ok) throw new Error('No se guardó');
+        const [act] = await r.json();
+        const i = invitados.findIndex(function (x) { return x.id === actual.id; });
+        if (i !== -1) invitados[i] = Object.assign(invitados[i], act);
+        pintarMarcador();
+        if ($('mesas').classList.contains('activa')) pintarMesas();
+        vibrar(60);
+        const mesa = (actual.mesa_asignada || '').trim();
+        toast('✓ ' + actual.nombre.split(' ')[0] + (mesa ? ' → mesa ' + mesa : ' registrado'));
+        cerrarFicha();
+    } catch (e) {
+        toast('No se pudo guardar. Revisa la señal.', true);
+    }
+    btn.disabled = false;
+});
+
+/* ── Mesas ────────────────────────────────────────────────────
+   Cuánta gente cabe, cuánta apartó lugar y cuánta ya llegó. Sirve
+   para dos cosas: sentar a quien llegó sin lugar, y ver de un
+   vistazo qué mesas siguen vacías porque su gente no llega.
+
+   La capacidad se comparte con el plano del salón de invitados.html:
+   es la misma clave y el mismo navegador. */
+const CAP_KEY = 'foro7_cap_mesa_' + SLUG;
+const ALIAS_PRINCIPAL = ['principal', 'novios', 'honor', 'festejados', 'festejado',
+                         'quinceanera', 'quinceañera'];
+
+function capacidadMesa() {
+    const n = parseInt(localStorage.getItem(CAP_KEY), 10);
+    return (!isNaN(n) && n >= 2 && n <= 20) ? n : 10;
+}
+
+function claveMesa(m) {
+    const t = (m || '').trim();
+    if (!t) return null;
+    return ALIAS_PRINCIPAL.indexOf(normalizar(t)) !== -1 ? '__principal__' : t;
+}
+
+/* Una fila por mesa con sus cuentas ya hechas. */
+function resumenMesas() {
+    const mapa = {};
+    invitados.forEach(function (g) {
+        if (g.status === 'declinada' || g.asiste === false) return;
+        const k = claveMesa(g.mesa_asignada);
+        if (!k) return;                                  // sin mesa: no ocupa ninguna
+        const m = mapa[k] = mapa[k] || { clave: k, apartados: 0, llegaron: 0, personas: [] };
+        m.apartados += (g.pases_confirmados || g.pases_asignados || 0);
+        if (g.checkin_at) m.llegaron += (g.pases_llegaron || 0);
+        m.personas.push(g);
+    });
+
+    const cap = capacidadMesa();
+    const filas = Object.keys(mapa).map(function (k) {
+        const m = mapa[k];
+        m.capacidad = cap;
+        m.porLlegar = Math.max(0, m.apartados - m.llegaron);
+        m.libres    = Math.max(0, cap - Math.max(m.apartados, m.llegaron));
+        m.vacios    = Math.max(0, cap - m.llegaron);     // lo que está físicamente vacío
+        m.sobrecupo = Math.max(0, Math.max(m.apartados, m.llegaron) - cap);
+        m.nombre    = k === '__principal__' ? 'Mesa principal' : 'Mesa ' + k;
+        return m;
+    });
+
+    // Primero donde cabe más gente sin quitarle el lugar a nadie
+    filas.sort(function (a, b) {
+        if (b.libres !== a.libres) return b.libres - a.libres;
+        if (b.vacios !== a.vacios) return b.vacios - a.vacios;
+        const na = parseInt(a.clave, 10), nb = parseInt(b.clave, 10);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a.clave).localeCompare(String(b.clave), 'es');
+    });
+    return filas;
+}
+
+/* El siguiente número de mesa que nadie está usando. */
+function siguienteMesaLibre() {
+    const usados = {};
+    invitados.forEach(function (g) {
+        const n = parseInt((g.mesa_asignada || '').trim(), 10);
+        if (!isNaN(n)) usados[n] = true;
+    });
+    let n = 1;
+    while (usados[n]) n++;
+    return String(n);
+}
+
+function pintarMesas() {
+    const cont = $('mesasLista');
+    const filas = resumenMesas();
+    $('capMesaPuerta').value = capacidadMesa();
+
+    if (!filas.length) {
+        cont.innerHTML = '<p style="color:var(--suave);text-align:center;padding:20px 0;">' +
+                         'Todavía no hay mesas asignadas. En cuanto le pongas mesa a alguien, ' +
+                         'aparece aquí.</p>';
+        $('mesasResumen').textContent = '';
+        return;
+    }
+
+    const conLugar = filas.filter(function (m) { return m.libres > 0; });
+    const huecos   = filas.reduce(function (s, m) { return s + m.libres; }, 0);
+    $('mesasResumen').textContent = filas.length + (filas.length === 1 ? ' mesa · ' : ' mesas · ') +
+        (huecos ? huecos + (huecos === 1 ? ' lugar libre en ' : ' lugares libres en ') +
+                  conLugar.length + (conLugar.length === 1 ? ' mesa' : ' mesas')
+                : 'todas apartadas');
+
+    cont.innerHTML = filas.map(function (m) {
+        let sillas = '';
+        for (let i = 0; i < m.capacidad; i++) {
+            const cls = i < m.llegaron ? 'ocupada'
+                      : i < Math.max(m.apartados, m.llegaron) ? 'apartada' : '';
+            sillas += '<span class="silla ' + cls + '"></span>';
+        }
+        for (let i = 0; i < m.sobrecupo; i++) sillas += '<span class="silla extra"></span>';
+
+        const partes = [];
+        partes.push(m.llegaron + (m.llegaron === 1 ? ' persona ya llegó' : ' personas ya llegaron'));
+        if (m.porLlegar) partes.push(m.porLlegar + ' sin llegar');
+        if (m.sobrecupo) partes.push('<strong style="color:var(--error)">' + m.sobrecupo + ' de sobrecupo</strong>');
+
+        const nota = m.libres === 0 && m.porLlegar
+            ? 'Solo se desocupa si esa gente ya no viene.'
+            : (m.vacios && !m.libres ? 'Hay ' + m.vacios + ' lugares vacíos, pero están apartados.' : '');
+
+        return '<div class="mesa-item ' + (m.libres ? 'libre' : (m.vacios ? '' : 'llena')) + '" data-mesa="' +
+               (m.clave === '__principal__' ? 'Principal' : m.clave) + '">' +
+               '<div class="mesa-cab"><span class="mesa-nom">' + m.nombre + '</span>' +
+               '<span class="mesa-hueco' + (m.libres ? '' : ' cero') + '">' +
+               (m.libres ? m.libres + (m.libres === 1 ? ' lugar libre' : ' lugares libres') : 'sin lugar') +
+               '</span></div>' +
+               '<div class="sillas">' + sillas + '</div>' +
+               '<div class="mesa-meta">' + partes.join(' · ') +
+               (nota ? '<br>' + nota : '') + '</div></div>';
+    }).join('');
+
+    // Tocar una mesa abre el alta ya con esa mesa puesta
+    Array.prototype.forEach.call(cont.querySelectorAll('.mesa-item'), function (el) {
+        el.addEventListener('click', function () { abrirAlta({ mesa: el.dataset.mesa }); });
+    });
+}
+
+$('btnMesas').addEventListener('click', function () {
+    pintarMesas();
+    $('vistaPrincipal').classList.add('oculto');
+    $('mesas').classList.add('activa');
+    window.scrollTo({ top: 0 });
+});
+
+$('btnCerrarMesas').addEventListener('click', function () {
+    $('mesas').classList.remove('activa');
+    $('vistaPrincipal').classList.remove('oculto');
+});
+
+$('capMesaPuerta').addEventListener('change', function () {
+    const n = parseInt(this.value, 10);
+    if (!isNaN(n) && n >= 2 && n <= 20) { localStorage.setItem(CAP_KEY, n); pintarMesas(); }
+    else this.value = capacidadMesa();
+});
+
+/* ── Alta en la puerta ────────────────────────────────────────
+   El invitado de palabra, el de la invitación genérica que nunca
+   se registró, el grupo de más que llegó con un enlace prestado.
+   Se registra y entra en el mismo movimiento. */
+function abrirAlta(pre) {
+    pre = pre || {};
+    $('aNombre').value = pre.nombre || '';
+    $('aPersonas').textContent = pre.personas || 1;
+    $('aMesa').value = pre.mesa || '';
+    $('aNota').value = pre.nota || '';
+
+    // Sugerir las mesas donde de verdad cabe gente
+    const libres = resumenMesas().filter(function (m) { return m.libres > 0; }).slice(0, 6);
+    $('aMesasSugeridas').innerHTML =
+        libres.map(function (m) {
+            return '<button type="button" class="chip" data-mesa="' +
+                   (m.clave === '__principal__' ? 'Principal' : m.clave) + '">' +
+                   m.nombre.replace('Mesa ', '') + ' <span class="libre">' + m.libres + '</span></button>';
+        }).join('') +
+        '<button type="button" class="chip nueva" data-mesa="' + siguienteMesaLibre() + '">' +
+        '+ mesa ' + siguienteMesaLibre() + '</button>';
+
+    Array.prototype.forEach.call($('aMesasSugeridas').querySelectorAll('.chip'), function (b) {
+        b.addEventListener('click', function () { $('aMesa').value = b.dataset.mesa; });
+    });
+
+    $('vistaPrincipal').classList.add('oculto');
+    $('ficha').classList.remove('activa');
+    $('mesas').classList.remove('activa');
+    $('alta').classList.add('activa');
+    window.scrollTo({ top: 0 });
+    if (!pre.nombre) $('aNombre').focus();
+}
+
+function cerrarAlta() {
+    $('alta').classList.remove('activa');
+    $('vistaPrincipal').classList.remove('oculto');
+}
+
+$('btnAlta').addEventListener('click', function () {
+    // Si venía escribiendo un nombre en el buscador, se aprovecha
+    abrirAlta({ nombre: $('buscar').value.trim() });
+});
+$('btnCancelarAlta').addEventListener('click', cerrarAlta);
+
+$('aMas').addEventListener('click', function () {
+    $('aPersonas').textContent = Math.min(20, parseInt($('aPersonas').textContent, 10) + 1);
+});
+$('aMenos').addEventListener('click', function () {
+    $('aPersonas').textContent = Math.max(1, parseInt($('aPersonas').textContent, 10) - 1);
+});
+
+$('btnGuardarAlta').addEventListener('click', async function () {
+    const btn = this;
+    const nombre = $('aNombre').value.trim();
+    if (!nombre) { toast('Falta el nombre.', true); $('aNombre').focus(); return; }
+    if (!eventoId) { toast('Todavía no cargó el evento.', true); return; }
+
+    const n = parseInt($('aPersonas').textContent, 10) || 1;
+    const mesa = $('aMesa').value.trim();
+    const nota = $('aNota').value.trim();
+
+    btn.disabled = true;
+    btn.textContent = 'Guardando…';
+    try {
+        const r = await fetch(SB_URL + '/rest/v1/invitados', {
+            method: 'POST',
+            headers: Object.assign({}, SB_H, { Prefer: 'return=representation' }),
+            body: JSON.stringify({
+                evento_id: eventoId,
+                nombre: nombre,
+                categoria: 'otro',
+                pases_asignados: n,
+                pases_confirmados: n,
+                mesa_asignada: mesa || null,
+                status: 'confirmada',
+                asiste: true,
+                checkin_at: new Date().toISOString(),
+                pases_llegaron: n,
+                checkin_nota: nota || 'Registrado en la puerta'
+            })
+        });
+        if (!r.ok) throw new Error(await r.text());
+        const [nuevo] = await r.json();
+        invitados.push(nuevo);
+        pintarMarcador();
+        vibrar(60);
+        toast('✓ ' + nombre.split(' ')[0] + (mesa ? ' → mesa ' + mesa : ' registrado'));
+        cerrarAlta();
+        $('buscar').value = '';
+        $('resultados').innerHTML = '';
+    } catch (e) {
+        toast('No se pudo registrar. Revisa la señal.', true);
+    }
+    btn.disabled = false;
+    btn.textContent = '✓ Registrar y dejar pasar';
+});
+
+/* Los de más van como registro aparte, para no ensuciar la
+   invitación original y para que queden con su propia mesa. */
+$('btnSepararGrupo').addEventListener('click', function () {
+    if (!actual) return;
+    const traia = actual.pases_confirmados || actual.pases_asignados || 0;
+    const ahora = parseInt($('pasesLlegaron').textContent, 10) || 0;
+    const extra = Math.max(1, ahora - traia);
+    abrirAlta({
+        personas: extra,
+        mesa: '',
+        nota: 'Llegaron con el enlace de ' + actual.nombre
+    });
+});
+
+/* ── Escáner de códigos ───────────────────────────────────── */
+function tokenDe(texto) {
+    const t = (texto || '').trim();
+    const m = t.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    return m ? m[0] : null;
+}
+
+async function alLeer(texto) {
+    const token = tokenDe(texto);
+    if (!token) { toast('Ese código no es de este evento.', true); return; }
+
+    let g = invitados.filter(function (x) { return x.token === token; })[0];
+    if (!g) {
+        // Puede ser un invitado dado de alta después de cargar la lista.
+        try {
+            const r = await fetch(SB_URL + '/rest/v1/invitados?token=eq.' + token + '&select=*&limit=1', { headers: SB_H });
+            const filas = await r.json();
+            if (filas.length && filas[0].evento_id === eventoId) { g = filas[0]; invitados.push(g); }
+        } catch (e) {}
+    }
+    if (!g) { toast('Ese invitado no está en la lista.', true); vibrar([60, 60, 60]); return; }
+
+    detenerEscaner();
+    const veces = contarEscaneo(token);
+    if (!g.checkin_at) vibrar(40);      // el aviso vibra solo si ya había pasado
+    abrirFicha(g.id, 'escaneo');
+    if (g.checkin_at) {
+        toast(veces > 2 ? 'Ojo: este pase ya se escaneó ' + veces + ' veces' : 'Este pase ya había pasado', true);
+    }
+}
+
+async function iniciarEscaner() {
+    if (escaneando) return;
+    ocultarError();
+
+    if (!window.isSecureContext) {
+        mostrarError('La cámara solo funciona en https.',
+                     'Abre la página con https:// al inicio.');
+        return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        mostrarError('Este navegador no da acceso a la cámara.',
+                     'Prueba con Safari o Chrome actualizados, o usa la búsqueda por nombre.');
+        return;
+    }
+    if (typeof Html5Qrcode === 'undefined') {
+        mostrarError('No cargó el lector de códigos.',
+                     'Revisa la conexión y recarga. Mientras tanto, busca por nombre.');
+        return;
+    }
+
+    $('btnEscanear').textContent = 'Abriendo cámara…';
+    $('btnEscanear').disabled = true;
+
+    try {
+        /* iOS pide el permiso aquí: hay que solicitarlo dentro del
+           toque, antes de arrancar el lector. El flujo se cierra
+           enseguida; solo sirve para que salga el diálogo. */
+        const prueba = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } }, audio: false
+        });
+        prueba.getTracks().forEach(function (t) { t.stop(); });
+
+        lector = lector || new Html5Qrcode('lector');
+
+        /* Elegir la cámara trasera por id: en iPhone es más fiable
+           que pedir facingMode a secas. */
+        let camara = { facingMode: 'environment' };
+        try {
+            const camaras = await Html5Qrcode.getCameras();
+            if (camaras && camaras.length) {
+                const trasera = camaras.find(function (c) {
+                    return /back|rear|tras|environment/i.test(c.label || '');
+                });
+                camara = (trasera || camaras[camaras.length - 1]).id;
+            }
+        } catch (e) { /* si no se pueden listar, queda facingMode */ }
+
+        await lector.start(
+            camara,
+            { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1 },
+            function (txt) { alLeer(txt); },
+            function () { /* lecturas fallidas: normales, se ignoran */ }
+        );
+
+        escaneando = true;
+        $('lector').classList.add('activo');
+        $('btnEscanear').classList.add('oculto');
+        $('btnDetener').classList.remove('oculto');
+    } catch (e) {
+        const nombre = (e && (e.name || e.message)) || '';
+        if (/NotAllowed|Permission|denied/i.test(nombre)) {
+            mostrarError('No diste permiso a la cámara.',
+                         'En iPhone: toca «aA» junto a la dirección → Ajustes del sitio web → Cámara → Permitir. ' +
+                         'En Android: el candado junto a la dirección → Permisos → Cámara.');
+        } else if (/NotFound|Overconstrained/i.test(nombre)) {
+            mostrarError('No se encontró ninguna cámara.',
+                         'Usa la búsqueda por nombre de aquí abajo.');
+        } else if (/NotReadable|TrackStart|AbortError/i.test(nombre)) {
+            mostrarError('Otra aplicación está usando la cámara.',
+                         'Cierra la cámara o la videollamada que tengas abierta y vuelve a intentar.');
+        } else {
+            mostrarError('No se pudo abrir la cámara.', String(nombre || e));
+        }
+    }
+    $('btnEscanear').textContent = '📷 Escanear código';
+    $('btnEscanear').disabled = false;
+}
+
+async function detenerEscaner() {
+    if (!escaneando || !lector) return;
+    try { await lector.stop(); lector.clear(); } catch (e) {}
+    escaneando = false;
+    $('lector').classList.remove('activo');
+    $('btnEscanear').classList.remove('oculto');
+    $('btnDetener').classList.add('oculto');
+}
+
+$('btnEscanear').addEventListener('click', iniciarEscaner);
+$('btnDetener').addEventListener('click', detenerEscaner);
+
+// Si la pantalla se va a segundo plano, soltar la cámara.
+document.addEventListener('visibilitychange', function () {
+    if (document.hidden) detenerEscaner();
+});
+
+cargar();
+// Refresco suave por si alguien confirma desde su teléfono durante el evento.
+setInterval(function () { if (!actual && !document.hidden) cargar(); }, 60000);
+
+})();
+</script>
+</body>
+</html>

@@ -78,6 +78,26 @@
             section.style.display = 'block';
         }
 
+        // Pase de acceso: el QR lleva su mismo enlace y es lo que se escanea en acceso.html
+        const pase = document.getElementById('pase');
+        if (pase) {
+            document.getElementById('paseNombre').textContent = g.nombre;
+            document.getElementById('paseLugares').textContent = g.pases_asignados;
+            if (g.mesa_asignada) {
+                document.getElementById('paseMesa').textContent = String(g.mesa_asignada).replace(/^mesa\s*/i, '');
+                document.getElementById('paseMesaCaja').hidden = false;
+            }
+            const caja = document.getElementById('paseQR');
+            if (typeof QRCode !== 'undefined' && caja && !caja.childElementCount) {
+                new QRCode(caja, {
+                    text: location.origin + location.pathname + '?inv=' + token,
+                    width: 190, height: 190, colorDark: '#431724', colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+            pase.hidden = false;
+        }
+
         // Mostrar sección de confirmación (solo existe para invitaciones personalizadas)
         const rsvpSection = document.getElementById('rsvp');
         if (rsvpSection) rsvpSection.hidden = false;

@@ -3,44 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion de Invitados - XV Años Yosselin & 3 Años Ariana</title>
+    <title>Gestión de Invitados - XV Años Yosselin & 3 Años Ariana | Foro 7</title>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/admin.css?v=1">
     <link rel="stylesheet" href="css/servicios.css?v=1">
     <link rel="stylesheet" href="css/invitados.css?v=1">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+    /* ── Acomodo por mesa ── */
+    .mesas-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px;
+    }
+    .mesa-card {
+        background: #fff; border: 1px solid #e6e6ee; border-top: 4px solid #6c5ce7;
+        border-radius: 10px; padding: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+    .mesa-card.mesa-sin { border-top-color: #fdcb6e; }
+    .mesa-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .6rem; }
+    .mesa-head strong { font-size: 1rem; }
+    .mesa-head span { font-size: .78rem; color: #888; }
+    .mesa-lista { list-style: none; margin: 0; padding: 0; }
+    .mesa-lista li {
+        display: flex; justify-content: space-between; gap: 8px;
+        font-size: .86rem; padding: 3px 0; color: #444; border-bottom: 1px dashed #f0f0f5;
+    }
+    .mesa-lista li.llego { color: #2e9e5b; font-weight: 600; }
+    .mesa-lista li small { color: #999; }
+    .mesa-pie { margin-top: .6rem; font-size: .74rem; color: #888; }
+
+    /* ── Plano del salón ── */
+    .plano-barra {
+        display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+        background: #fff; border: 1px solid #e6e6ee; border-radius: 10px;
+        padding: 12px 14px; margin-bottom: 12px;
+    }
+    .plano-barra label { font-size: .84rem; color: #555; display: flex; align-items: center; gap: 8px; }
+    .plano-barra input {
+        width: 68px; padding: 7px 9px; border: 1px solid #d8d8e2;
+        border-radius: 7px; font-family: inherit; font-size: .9rem;
+    }
+    .btn-plano {
+        background: #6c5ce7; color: #fff; border: none; border-radius: 7px;
+        padding: 9px 16px; font-family: inherit; font-size: .84rem; font-weight: 600; cursor: pointer;
+    }
+    .plano-leyenda { display: flex; gap: 14px; margin-left: auto; font-size: .76rem; color: #777; }
+    .plano-leyenda span { display: flex; align-items: center; gap: 5px; }
+    .plano-leyenda .pt {
+        width: 12px; height: 12px; border-radius: 50%;
+        border: 2px solid #c9c9d6; background: #fff; display: inline-block;
+    }
+    .plano-leyenda .pt.ocupada { background: #6c5ce7; border-color: #6c5ce7; }
+    .plano-leyenda .pt.llego   { background: #2e9e5b; border-color: #2e9e5b; }
+
+    .plano-resumen { font-size: .88rem; color: #666; margin-bottom: 1rem; }
+    .plano-resumen .alerta, .alerta { color: #d63031; }
+
+    .mesas-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); gap: 18px;
+    }
+    .plano-mesa {
+        background: #fff; border: 1px solid #e6e6ee; border-radius: 12px;
+        padding: 14px 10px; box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+    .plano-mesa.llena    { border-color: #2e9e5b; }
+    .plano-mesa.excedida { border-color: #d63031; }
+    .plano-mesa.sin      { border-color: #fdcb6e; background: #fffdf5; }
+    .plano-mesa.vacia    { opacity: .75; }
+
+    .plano-figura { position: relative; width: 176px; height: 176px; margin: 0 auto 10px; }
+    .plato {
+        position: absolute; inset: 30px; border-radius: 50%;
+        background: #f3f1fb; border: 2px solid #ddd8f5;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .plano-mesa.sin .plato { background: #fdf6e3; border-color: #f0dfae; }
+    .plato-num   { font-size: 1.5rem; font-weight: 800; color: #4b3fb3; line-height: 1; }
+    .plano-mesa.sin .plato-num { font-size: .95rem; color: #9a7b18; }
+    .plato-gente { font-size: .74rem; color: #888; margin-top: 2px; }
+
+    .silla {
+        position: absolute; top: 50%; left: 50%;
+        width: 18px; height: 18px; margin: -9px 0 0 -9px;
+        border-radius: 50%; background: #fff; border: 2px solid #ccc9da;
+        transform-origin: center;
+    }
+    .silla.ocupada { background: #6c5ce7; border-color: #6c5ce7; }
+    .silla.ocupada.llego { background: #2e9e5b; border-color: #2e9e5b; }
+
+    .plano-pie { text-align: center; font-size: .78rem; color: #888; margin-bottom: .5rem; }
+    .plano-lista { list-style: none; margin: 0; padding: 0; border-top: 1px dashed #eee; padding-top: .5rem; }
+    .plano-lista li {
+        font-size: .8rem; color: #444; padding: 2px 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .plano-lista li.llego { color: #2e9e5b; font-weight: 600; }
+    .plano-lista li.llego::before { content: '✓ '; }
+    .plano-lista li.anon { color: #aaa; }
+    /* ── Mesa principal: los festejados ── */
+    .plano-mesa.principal { grid-column: 1 / -1; border-color: #c9a227; background: #fffdf4; }
+    .mesa-larga {
+        border: 2px solid #c9a227; background: #fff8e3;
+        border-radius: 14px; padding: 16px 18px; margin-bottom: .6rem;
+    }
+    .mesa-larga-et {
+        font-size: .76rem; font-weight: 700; letter-spacing: .14em;
+        text-transform: uppercase; color: #8a6d12; margin-bottom: .8rem; text-align: center;
+    }
+    .mesa-larga-lugares { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .lugar-principal {
+        display: flex; flex-direction: column; align-items: center;
+        background: #fff; border: 1px solid #ecdfae; border-radius: 9px;
+        padding: 8px 14px; min-width: 110px;
+    }
+    .lugar-principal.llego { border-color: #2e9e5b; background: #f2fbf5; }
+    .lp-nombre { font-size: .86rem; font-weight: 600; color: #4a3c12; }
+    .lp-rol { font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: #a08a3e; }
+    /* ── Asignar mesa desde la tabla ── */
+    .celda-check { width: 34px; text-align: center; }
+    .sel-invitado { width: 17px; height: 17px; cursor: pointer; }
+    .mesa-input {
+        width: 68px; padding: 5px 8px; text-align: center;
+        border: 1px solid #d8d8e2; border-radius: 6px;
+        font-family: inherit; font-size: .88rem; background: #fff;
+    }
+    .mesa-input:focus { outline: none; border-color: #6c5ce7; box-shadow: 0 0 0 3px rgba(108,92,231,.15); }
+    .mesa-input.guardado { border-color: #2e9e5b; background: #f2fbf5; }
+    .mesa-input:disabled { opacity: .6; }
+
+    .barra-lote {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        background: #f6f5ff; border: 1px solid #e0dcf7;
+        border-radius: 10px; padding: 11px 14px; margin-bottom: 12px;
+    }
+    .barra-lote label { font-size: .84rem; color: #555; display: flex; align-items: center; gap: 8px; }
+    .barra-lote input {
+        width: 88px; padding: 7px 10px; border: 1px solid #d8d8e2;
+        border-radius: 7px; font-family: inherit; font-size: .9rem;
+    }
+    .barra-lote button {
+        background: #6c5ce7; color: #fff; border: none; border-radius: 7px;
+        padding: 8px 16px; font-family: inherit; font-size: .84rem; font-weight: 600; cursor: pointer;
+    }
+    .barra-lote button:disabled { background: #c9c5e8; cursor: default; }
+    #selConteo { font-size: .82rem; color: #6c5ce7; font-weight: 600; }
+    .lote-ayuda { font-size: .76rem; color: #999; margin-left: auto; }
+
+
+    /* Al imprimir: solo el plano, en blanco y negro legible */
+    @media print {
+        body.solo-plano > *:not(.main-content) { display: none !important; }
+        body.solo-plano .section:not(:has(#mesasGrid)) { display: none !important; }
+        body.solo-plano .plano-barra, body.solo-plano .nav-links { display: none !important; }
+        body.solo-plano .mesas-grid { grid-template-columns: repeat(3, 1fr); }
+        body.solo-plano .plano-mesa { break-inside: avoid; box-shadow: none; }
+    }
+
+    /* ── Modal de código QR ── */
+    #qrModal {
+        display: none; position: fixed; inset: 0; z-index: 9500;
+        background: rgba(20,16,20,.7); align-items: center; justify-content: center; padding: 18px;
+    }
+    #qrModal.show { display: flex; }
+    .qr-caja {
+        background: #fff; border-radius: 14px; padding: 26px 22px;
+        text-align: center; max-width: 340px; width: 100%;
+    }
+    .qr-caja h3 { font-size: 1.15rem; margin-bottom: .2rem; color: #2d3436; }
+    .qr-caja .qr-sub { font-size: .84rem; color: #888; margin-bottom: 1rem; }
+    #qrCanvas { display: flex; justify-content: center; margin-bottom: 1rem; }
+    #qrCanvas img, #qrCanvas canvas { border-radius: 8px; }
+    .qr-acciones { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .qr-acciones button {
+        flex: 1 1 auto; padding: 11px 16px; border: none; border-radius: 8px;
+        font-family: inherit; font-size: .86rem; font-weight: 600; cursor: pointer;
+    }
+    .qr-descargar { background: #6c5ce7; color: #fff; }
+    .qr-cerrar { background: #eee; color: #444; }
+    .qr-nota { font-size: .76rem; color: #999; margin-top: .9rem; line-height: 1.5; }
+</style>
 </head>
 <body>
     <div class="admin-container">
         <a href="contrato.html" class="btn-back"><i class="fas fa-arrow-left"></i> Volver al Contrato</a>
         <header class="service-header" style="background: linear-gradient(135deg, #55efc4, #00b894);">
             <div class="service-icon"><i class="fas fa-users"></i></div>
-            <h1>Gestion de Invitados</h1>
+            <h1>Gestión de Invitados</h1>
+            <p style="margin-top:.4rem"><a href="panel.html" style="color:inherit;opacity:.8;font-size:.85rem">🧭 Ver todas las páginas del evento</a></p>
             <p>XV Años de Yosselin & 3 Años de Ariana</p>
         </header>
         <section class="service-section">
             <h2><i class="fas fa-chart-bar"></i> Resumen de Invitados</h2>
+            <p style="color:#888;font-size:.86rem;margin-bottom:1rem;">Los números grandes son <strong>personas</strong>. Abajo, en cuántas invitaciones van repartidas.</p>
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <div class="stat-icon" style="background:#6c5ce7"><i class="fas fa-users"></i></div>
-                    <div class="stat-info"><h3>Total Invitados</h3><p class="stat-value" id="totalInvitados">0</p><small style="color:#999" id="totalPases">0 pases</small></div>
+                    <div class="stat-info"><h3>Invitados</h3><p class="stat-value" id="totalInvitados">0</p><small style="color:#999" id="totalPases">en 0 invitaciones</small></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background:#00b894"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-info"><h3>Confirmados</h3><p class="stat-value" id="confirmados">0</p></div>
+                    <div class="stat-info"><h3>Confirmados</h3><p class="stat-value" id="confirmados">0</p><small style="color:#999" id="personasConfirmadas">en 0 invitaciones</small></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background:#0984e3"><i class="fas fa-user-check"></i></div>
-                    <div class="stat-info"><h3>Total Asistentes</h3><p class="stat-value" id="totalAsistentes">0</p><small style="color:#999">personas confirmadas</small></div>
+                    <div class="stat-info"><h3>Esperados</h3><p class="stat-value" id="totalAsistentes">0</p><small style="color:#999" id="detalleAsistentes">quedan por venir</small></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background:#fdcb6e"><i class="fas fa-clock"></i></div>
-                    <div class="stat-info"><h3>Sin Respuesta</h3><p class="stat-value" id="pendientes">0</p></div>
+                    <div class="stat-info"><h3>Sin respuesta</h3><p class="stat-value" id="pendientes">0</p><small style="color:#999" id="personasPendientes">en 0 invitaciones</small></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#2e9e5b"><i class="fas fa-door-open"></i></div>
+                    <div class="stat-info"><h3>Ya llegaron</h3><p class="stat-value" id="yaLlegaron">0</p><small style="color:#999" id="personasLlegaron">en 0 invitaciones</small></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon" style="background:#d63031"><i class="fas fa-times-circle"></i></div>
-                    <div class="stat-info"><h3>Declinados</h3><p class="stat-value" id="noAsistiran">0</p></div>
+                    <div class="stat-info"><h3>No asisten</h3><p class="stat-value" id="noAsistiran">0</p><small style="color:#999" id="personasDeclinadas">en 0 invitaciones</small></div>
                 </div>
             </div>
         </section>
@@ -56,16 +234,25 @@
                     <button class="filter-btn" data-filter="declinada">Declinada</button>
                 </div>
                 <button class="btn-add-guest" onclick="openAddGuestModal()"><i class="fas fa-plus"></i> Agregar Invitado</button>
+                <a class="btn-add-guest" href="acceso.html" style="background:#2e9e5b;text-decoration:none;display:inline-flex;align-items:center;gap:8px;"><i class="fas fa-qrcode"></i> Control de acceso</a>
             </div>
         </section>
         <section class="service-section">
             <h2><i class="fas fa-list"></i> Lista de Invitados</h2>
             <div class="table-container">
+            <div class="barra-lote">
+                <label>Asignar a la mesa
+                    <input type="text" id="mesaLote" placeholder="ej. 3" maxlength="12">
+                </label>
+                <button id="btnAsignarLote" onclick="RSVP_ADMIN.asignarLote()" disabled>Asignar mesa</button>
+                <span id="selConteo">Ninguno seleccionado</span>
+                <span class="lote-ayuda">Marca las casillas de la izquierda, o escribe la mesa en cada fila</span>
+            </div>
                 <table class="guests-table" id="guestsTable">
                     <thead><tr>
-                        <th>Nombre</th><th>Categoria</th>
-                        <th style="text-align:center">Pases</th><th style="text-align:center">Conf.</th>
-                        <th>Mesa</th><th>Status</th><th>Envio / Confirmacion</th>
+                        <th style="width:34px;text-align:center"><input type="checkbox" id="selTodos" title="Seleccionar todos"></th><th>Nombre</th><th>Categoría</th>
+                        <th style="text-align:center" title="Personas de esa invitación, incluido el titular">Personas</th><th style="text-align:center" title="Cuántas confirmaron de las invitadas">Confirman</th>
+                        <th>Mesa</th><th>Status</th><th>Envío / Confirmación</th>
                         <th>WhatsApp / Link</th><th>Acciones</th>
                     </tr></thead>
                     <tbody id="guestsTableBody"></tbody>
@@ -73,9 +260,30 @@
             </div>
         </section>
         <section class="service-section">
+            <h2><i class="fas fa-chair"></i> Plano del Salón</h2>
+            <div class="plano-barra">
+                <label>
+                    Lugares por mesa
+                    <input type="number" id="capMesa" min="2" max="20" value="10"
+                           onchange="RSVP_ADMIN.cambiarCapacidad(this.value)">
+                </label>
+                <button class="btn-plano" onclick="RSVP_ADMIN.imprimirPlano()">
+                    <i class="fas fa-print"></i> Imprimir plano
+                </button>
+                <div class="plano-leyenda">
+                    <span><i class="pt ocupada"></i> ocupado</span>
+                    <span><i class="pt llego"></i> ya llegó</span>
+                    <span><i class="pt"></i> libre</span>
+                </div>
+            </div>
+            <p class="plano-resumen" id="mesasResumen"></p>
+            <div class="mesas-grid" id="mesasGrid"></div>
+        </section>
+
+        <section class="section">
             <h2><i class="fas fa-chart-pie"></i> Distribucion por Categoria</h2>
             <div class="category-cards">
-                <div class="category-card"><div class="category-icon" style="background:#e056fd"><i class="fas fa-home"></i></div><h4>Familia</h4><p class="category-count" id="catFamilia">0</p></div>
+                <div class="category-card"><div class="category-icon" style="background:#a97fd6"><i class="fas fa-home"></i></div><h4>Familia</h4><p class="category-count" id="catFamilia">0</p></div>
                 <div class="category-card"><div class="category-icon" style="background:#f39c12"><i class="fas fa-heart"></i></div><h4>Padrinos</h4><p class="category-count" id="catPadrinos">0</p></div>
                 <div class="category-card"><div class="category-icon" style="background:#3498db"><i class="fas fa-user-friends"></i></div><h4>Amigos</h4><p class="category-count" id="catAmigos">0</p></div>
                 <div class="category-card"><div class="category-icon" style="background:#1abc9c"><i class="fas fa-users"></i></div><h4>Conocidos</h4><p class="category-count" id="catConocidos">0</p></div>
@@ -84,14 +292,30 @@
         <section class="service-section">
             <h2><i class="fas fa-download"></i> Exportar Datos</h2>
             <div class="export-buttons">
-                <button class="btn-export" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
-                <button class="btn-export" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> Exportar a PDF</button>
-                <button class="btn-export" onclick="printList()"><i class="fas fa-print"></i> Imprimir Lista</button>
+                <button class="btn-export" onclick="RSVP_ADMIN.exportCSV()"><i class="fas fa-file-csv"></i> Exportar CSV</button>
+                <button class="btn-export" onclick="RSVP_ADMIN.imprimirLista()"><i class="fas fa-print"></i> Imprimir lista / Guardar PDF</button>
             </div>
         </section>
     </div>
 
     <!-- Modal Agregar/Editar Invitado -->
+    <!-- Código QR del invitado -->
+    <div id="qrModal" onclick="if(event.target===this)RSVP_ADMIN.cerrarQR()">
+        <div class="qr-caja">
+            <h3 id="qrNombre">Invitado</h3>
+            <p class="qr-sub"><span id="qrMesa"></span> · <span id="qrPases"></span></p>
+            <div id="qrCanvas"></div>
+            <div class="qr-acciones">
+                <button class="qr-descargar" onclick="RSVP_ADMIN.descargarQR()">Descargar PNG</button>
+                <button class="qr-cerrar" onclick="RSVP_ADMIN.cerrarQR()">Cerrar</button>
+            </div>
+            <p class="qr-nota">
+                El mismo código abre su invitación personalizada y sirve para registrar
+                su llegada en el <strong>control de acceso</strong>.
+            </p>
+        </div>
+    </div>
+
     <div id="guestModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -127,7 +351,12 @@
                         </div>
                         <div class="form-group"><label>Mesa Asignada</label><input type="text" id="guestTable" placeholder="Ej: Mesa 5"></div>
                     </div>
-                    <div class="form-group"><label>Notas</label><textarea id="guestNotes" rows="3" placeholder="Alergias, preferencias..."></textarea></div>
+                                        <div class="form-group" id="acompGroup" style="display:none;">
+                        <label>Nombres de Acompanantes</label>
+                        <small style="color:#999;display:block;margin-bottom:8px;">Escribe los nombres que conozcas, deja vacios los que no sepas</small>
+                        <div id="acompContainer"></div>
+                    </div>
+<div class="form-group"><label>Notas</label><textarea id="guestNotes" rows="3" placeholder="Alergias, preferencias..."></textarea></div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" onclick="closeGuestModal()">Cancelar</button>
                         <button type="submit" class="btn-save"><i class="fas fa-save"></i> Guardar Invitado</button>
@@ -143,7 +372,7 @@
         .status-vista{background:#74b9ff;color:#1a3a6b}.status-confirmada{background:#55efc4;color:#006b4f}
         .status-declinada{background:#636e72;color:#fff}
         .badge-cat{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.75rem;text-transform:capitalize}
-        .cat-familia{background:#e056fd22;color:#8e44ad}.cat-padrinos{background:#f39c1222;color:#b7770d}
+        .cat-familia{background:#a97fd622;color:#8e44ad}.cat-padrinos{background:#f39c1222;color:#b7770d}
         .cat-amigos{background:#3498db22;color:#1a5276}.cat-conocidos{background:#1abc9c22;color:#0e6655}
         .cat-otro{background:#dfe6e9;color:#636e72}
         .action-group{display:flex;gap:5px}
@@ -156,12 +385,61 @@
     <script>
     window.RSVP_CONFIG = {
         slug:      'xv-y-3-anos-yosselin-ariana',
-        baseUrl:   'https://yosselin-ariana.invitados.org/',
+        baseUrl:   'https://yosselin-ariana.invitados.org',
         pin:       '2709',
-        eventName: 'XV Años de Yosselin & 3 Años de Ariana'
+        eventName: 'XV Años de Yosselin & 3 Años de Ariana',
+        eventDate: 'sábado 9 de enero de 2027'
     };
     </script>
-    <script src="js/rsvp-admin.js?v=1"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="js/rsvp-admin.js?v=2"></script>
 <script src="js/foro7-footer.js?v=1"></script>
+<script>
+/* ── Notificaciones de datos pendientes ── */
+(function(){
+  const SB='https://nzpujmlienzfetqcgsxz.supabase.co';
+  const AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56cHVqbWxpZW56ZmV0cWNnc3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2ODYzMzYsImV4cCI6MjA5MDI2MjMzNn0.xl3lsb-KYj5tVLKTnzpbsdEGoV9ySnswH4eyRuyEH1s';
+  const H={apikey:AK,Authorization:'Bearer '+AK,'Content-Type':'application/json'};
+  const SLUG='xv-y-3-anos-yosselin-ariana';
+  async function checkNotif(){
+    try{
+      const er=await fetch(`${SB}/rest/v1/eventos?slug=eq.${SLUG}&select=id&limit=1`,{headers:H});
+      const [ev]=await er.json(); if(!ev) return;
+      const nr=await fetch(`${SB}/rest/v1/notificaciones?evento_id=eq.${ev.id}&leida=eq.false&select=id,seccion,campos_actualizados,created_at&order=created_at.desc`,{headers:H});
+      const notifs=await nr.json();
+      if(!notifs.length) return;
+      const badge=document.createElement('div');
+      badge.id='notif-badge';
+      badge.style.cssText='position:fixed;top:80px;right:1rem;z-index:9999;background:#7c3aed;color:#fff;border-radius:12px;padding:.8rem 1.2rem;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.4);font-size:.85rem;cursor:pointer;';
+      badge.innerHTML=`<strong>🔔 ${notifs.length} actualización${notifs.length>1?'es':''} de datos</strong><br><small style="opacity:.8">${notifs.slice(0,3).map(n=>`${n.seccion}: ${(n.campos_actualizados||[]).join(', ')}`).join('<br>')}</small><br><small style="opacity:.5;margin-top:.3rem;display:block">Toca para marcar como leídas</small>`;
+      badge.onclick=async()=>{
+        await fetch(`${SB}/rest/v1/notificaciones?evento_id=eq.${ev.id}&leida=eq.false`,{method:'PATCH',headers:H,body:JSON.stringify({leida:true})});
+        badge.remove();
+      };
+      document.body.appendChild(badge);
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',checkNotif);
+})();
+</script>
+
+<!-- Acceso directo al lector, siempre visible -->
+<a href="acceso.html" class="fab-acceso" title="Abrir el lector de códigos para la entrada">
+    <i class="fas fa-qrcode"></i>
+    <span>Escanear<br>en la puerta</span>
+</a>
+<style>
+.fab-acceso {
+    position: fixed; right: 18px; bottom: 18px; z-index: 9000;
+    display: flex; align-items: center; gap: 10px;
+    background: #2e9e5b; color: #fff; text-decoration: none;
+    padding: 13px 18px; border-radius: 999px;
+    box-shadow: 0 8px 26px rgba(46,158,91,.45);
+    font-size: .78rem; font-weight: 700; line-height: 1.2;
+}
+.fab-acceso i { font-size: 1.3rem; }
+.fab-acceso:hover { background: #26824a; }
+@media (max-width: 600px) { .fab-acceso span { display: none; } .fab-acceso { padding: 16px; } }
+</style>
 </body>
 </html>
