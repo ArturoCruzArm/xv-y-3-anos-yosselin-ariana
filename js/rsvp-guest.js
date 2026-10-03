@@ -9,12 +9,16 @@
     if (!token) return; // No hay token — invitación genérica, nada que hacer
 
     let guestData = null;
+    let submitAttached = false;
+
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const personas = n => `${n} ${n === 1 ? 'persona' : 'personas'}`;
 
     // ── Cargar invitado por token ────────────────────────────────────────────
     async function loadGuest() {
         try {
             const r = await fetch(
-                `${SB_URL}/rest/v1/invitados?token=eq.${encodeURIComponent(token)}&select=id,nombre,pases_asignados,status,asiste,confirmacion_nombre,pases_confirmados,mensaje`,
+                `${SB_URL}/rest/v1/invitados?token=eq.${encodeURIComponent(token)}&select=id,nombre,pases_asignados,mesa_asignada,status,asiste,confirmacion_nombre,pases_confirmados,mensaje`,
                 { headers: SB_H }
             );
             const rows = await r.json();
@@ -63,28 +67,47 @@
         const section  = document.getElementById('personalizedWelcome');
         const textEl   = document.getElementById('guestWelcomeText');
         const pasesEl  = document.getElementById('guestPassesText');
+        const mesaEl   = document.getElementById('guestTableText');
         if (section && textEl && pasesEl) {
-            textEl.textContent = `${g.nombre}, estás cordialmente invitado(a) a celebrar mis XV años`;
-            pasesEl.innerHTML  = `<i class="fas fa-ticket-alt"></i> ${g.pases_asignados} ${g.pases_asignados === 1 ? 'pase asignado' : 'pases asignados'}`;
+            textEl.textContent = `${g.nombre}, nos encantará celebrar contigo`;
+            pasesEl.innerHTML  = `<i class="fa-solid fa-ticket"></i> ${g.pases_asignados} ${g.pases_asignados === 1 ? 'pase asignado' : 'pases asignados'}`;
+            if (mesaEl && g.mesa_asignada) {
+                mesaEl.innerHTML = `<i class="fa-solid fa-utensils"></i> ${esc(g.mesa_asignada)}`;
+                mesaEl.hidden = false;
+            }
             section.style.display = 'block';
         }
 
+        // Mostrar sección de confirmación (solo existe para invitaciones personalizadas)
+        const rsvpSection = document.getElementById('rsvp');
+        if (rsvpSection) rsvpSection.hidden = false;
+
         // Pre-llenar formulario
         const nameInput = document.getElementById('name');
-        if (nameInput) nameInput.value = g.nombre;
+        if (nameInput) nameInput.value = g.confirmacion_nombre || g.nombre;
 
         // Limitar select de pases al número asignado
         const guestsSelect = document.getElementById('guests');
         if (guestsSelect) {
-            guestsSelect.innerHTML = '<option value="">Selecciona...</option>';
+            guestsSelect.innerHTML = '';
             for (let i = 1; i <= g.pases_asignados; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
-                opt.textContent = i === 1 ? '1 persona' : `${i} personas`;
+                opt.textContent = personas(i);
                 guestsSelect.appendChild(opt);
             }
-            if (g.pases_asignados >= 1) guestsSelect.value = g.pases_asignados;
+            guestsSelect.value = g.pases_confirmados || g.pases_asignados;
         }
+        const messageInput = document.getElementById('message');
+        if (messageInput && g.mensaje) messageInput.value = g.mensaje;
+
+        // Si no asiste, el número de personas no aplica
+        const attendance = document.getElementById('attendance');
+        if (attendance && guestsSelect) {
+            attendance.addEventListener('change', () => { guestsSelect.disabled = attendance.value === 'no'; });
+        }
+
+        attachFormSubmit();
 
         // Si ya confirmó → mostrar estado, ocultar form
         if (g.status === 'confirmada' || g.status === 'declinada') {
@@ -96,30 +119,33 @@
         if (g.status === 'pendiente' || g.status === 'enviada') {
             markAsViewed(g.id);
         }
-
-        // Enganchar el submit del formulario
-        attachFormSubmit();
     }
 
     // ── Ya confirmó anteriormente ────────────────────────────────────────────
     function showAlreadyConfirmed() {
-        const rsvpSection = document.getElementById('rsvp');
-        if (!rsvpSection) return;
+        const form = document.getElementById('rsvpForm');
+        const successEl = document.getElementById('successMessage');
+        if (!form || !successEl) return;
         const g = guestData;
         const asiste = g.asiste;
-        rsvpSection.innerHTML = `
-            <div style="text-align:center;padding:40px 20px;background:rgba(255,255,255,0.05);border-radius:20px;border:2px solid var(--gold);">
-                <div style="font-size:3rem;margin-bottom:16px;">${asiste ? '🎉' : '💌'}</div>
-                <h2 style="color:var(--gold);font-family:'Playfair Display',serif;margin-bottom:12px;">
-                    ${asiste ? '¡Ya confirmaste tu asistencia!' : 'Gracias por avisarnos'}
-                </h2>
-                <p style="color:var(--cream);font-size:1.1rem;margin-bottom:8px;">
-                    ${asiste
-                        ? `Te esperamos con ${g.pases_confirmados} ${g.pases_confirmados === 1 ? 'lugar' : 'lugares'} reservados.`
-                        : 'Lamentamos que no puedas acompañarnos en este día tan especial.'}
-                </p>
-                ${g.mensaje ? `<p style="color:#aaa;font-style:italic;margin-top:12px;">"${g.mensaje}"</p>` : ''}
-            </div>`;
+        form.style.display = 'none';
+        successEl.style.display = 'block';
+        successEl.innerHTML = `
+            <p class="success-title"><i class="fa-solid ${asiste ? 'fa-circle-check' : 'fa-envelope-open-text'}"></i> ${asiste ? '¡Tu asistencia está confirmada!' : 'Gracias por avisarnos'}</p>
+            <p>${asiste
+                ? `Te esperamos con ${personas(g.pases_confirmados)}${g.mesa_asignada ? ` en la ${esc(g.mesa_asignada)}` : ''}.`
+                : 'Lamentamos que no puedas acompañarnos en este día tan especial.'}</p>
+            ${g.mensaje ? `<p class="success-quote">“${esc(g.mensaje)}”</p>` : ''}
+            <button type="button" class="link-button" id="changeRsvp">Cambiar mi respuesta</button>`;
+        document.getElementById('changeRsvp').addEventListener('click', () => {
+            successEl.style.display = 'none';
+            form.style.display = '';
+            const attendance = document.getElementById('attendance');
+            if (attendance) {
+                attendance.value = asiste ? 'si' : 'no';
+                attendance.dispatchEvent(new Event('change'));
+            }
+        });
     }
 
     // ── No encontrado ────────────────────────────────────────────────────────
@@ -128,54 +154,44 @@
         if (section) {
             section.style.display = 'block';
             section.innerHTML = `
-                <div style="font-size:2rem;margin-bottom:12px;">❓</div>
-                <h2 style="color:var(--gold);">Enlace no válido</h2>
-                <p style="color:var(--cream);">Este enlace de invitación no es válido o ha expirado.</p>`;
+                <p class="eyebrow">Invitación personalizada</p>
+                <h2>Enlace no válido</h2>
+                <p>Este enlace de invitación no es válido o ha expirado.</p>`;
         }
     }
 
     // ── Enganchar submit del form ────────────────────────────────────────────
     function attachFormSubmit() {
         const form = document.getElementById('rsvpForm');
-        if (!form) return;
+        if (!form || submitAttached) return;
+        submitAttached = true;
 
-        // Reemplazar el onsubmit original
-        form.onsubmit = null;
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const nombre    = (document.getElementById('name')?.value || '').trim();
-            const pases     = parseInt(document.getElementById('guests')?.value || '1');
             const asisteSel = document.getElementById('attendance')?.value;
-            const mensaje   = document.getElementById('message')?.value || '';
+            const mensaje   = (document.getElementById('message')?.value || '').trim();
 
             if (!nombre || !asisteSel) return;
             const asiste = asisteSel === 'si';
+            const pases  = asiste ? parseInt(document.getElementById('guests')?.value || '1') : 0;
 
             const btn = form.querySelector('button[type="submit"]');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'; }
+            const btnHtml = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span>Enviando…</span><i class="fa-solid fa-spinner fa-spin"></i>'; }
 
             const ok = await submitRSVP(asiste, pases, nombre, mensaje);
+            if (btn) { btn.disabled = false; btn.innerHTML = btnHtml; }
 
             if (ok) {
-                const successEl = document.getElementById('successMessage');
-                form.style.display = 'none';
-                if (successEl) {
-                    successEl.style.display = 'block';
-                    successEl.innerHTML = `
-                        <i class="fas fa-check-circle"></i>
-                        ${asiste
-                            ? `¡Gracias ${nombre}! Tu asistencia con ${pases} ${pases === 1 ? 'persona' : 'personas'} ha sido confirmada.`
-                            : `Gracias ${nombre} por avisarnos. ¡Te extrañaremos!`}`;
-                }
-                // Actualizar datos en memoria
                 guestData.status              = asiste ? 'confirmada' : 'declinada';
                 guestData.asiste              = asiste;
                 guestData.pases_confirmados   = pases;
                 guestData.confirmacion_nombre = nombre;
                 guestData.mensaje             = mensaje;
+                showAlreadyConfirmed();
             } else {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Confirmación'; }
                 alert('Hubo un error al enviar. Intenta de nuevo.');
             }
         });
@@ -188,6 +204,5 @@
         loadGuest();
     }
 
-    // Suprimir la función original para que no conflictúe
     window._rsvpGuestLoaded = true;
 })();
