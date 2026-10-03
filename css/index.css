@@ -76,13 +76,15 @@ main>section.personalized:before,main>section.personalized:after{display:none}
 .story blockquote:before{content:"";display:block;width:48px;height:1px;margin:0 auto 1.4rem;background:var(--gold)}
 
 /* ── Cuenta regresiva ── */
-.count-intro h2{margin:.5rem 0 1.6rem}
-.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:440px;margin:0 auto}
-.countdown div{padding:.9rem .2rem .7rem;border:1px solid var(--gold);background:rgba(255,255,255,.35);position:relative}
-.countdown div:after{content:"";position:absolute;inset:3px;border:1px solid rgba(198,161,91,.35);pointer-events:none}
-.countdown strong{display:block;font:500 clamp(2rem,8vw,2.8rem)/1 var(--serif);color:var(--wine)}
-.countdown span{font:500 .55rem var(--caps);letter-spacing:.16em;text-transform:uppercase}
-.event-started{grid-column:1/-1;padding:1.4rem;font:400 2.4rem var(--script);color:var(--wine)}
+.count-intro h2{margin:.2rem 0 1rem;font-size:clamp(3rem,11vw,4.2rem)}
+.countdown{display:flex;justify-content:center;align-items:flex-start;max-width:440px;margin:0 auto}
+.countdown div{position:relative;flex:1;padding:0 .2rem}
+.countdown div+div:before{content:":";position:absolute;left:-.18em;top:.05em;font:500 clamp(2.2rem,9vw,3rem)/1 var(--serif);color:var(--gold-dark)}
+.countdown strong{display:block;font:500 clamp(2.4rem,10vw,3.4rem)/1 var(--serif);color:var(--wine);font-variant-numeric:tabular-nums}
+.countdown span{display:block;margin-top:.5rem;font:500 .56rem var(--caps);letter-spacing:.18em;text-transform:uppercase}
+.countdown strong.tick{animation:tick .5s cubic-bezier(.3,.7,.3,1)}
+@keyframes tick{0%{transform:translateY(-.25em);opacity:.2;filter:blur(2px)}100%{transform:none;opacity:1;filter:none}}
+.event-started{flex:1;padding:1.4rem;font:400 2.4rem var(--script);color:var(--wine)}
 
 /* ── Tarjetas vino (itinerario, regalos, bienvenida) ── */
 .card-list{display:grid;gap:3.2rem;max-width:420px;margin:3rem auto 0}
@@ -179,5 +181,63 @@ footer small{font:400 .66rem/1.8 var(--sans);opacity:.6}
 .music-toggle.is-playing i{animation:musicPulse 1.8s ease-in-out infinite}
 @keyframes musicPulse{50%{transform:scale(1.18)}}
 
-@media(max-width:520px){.section-pad{padding:4rem 16px}.form-row{grid-template-columns:1fr}.dl-row{gap:.6rem}.dl-row span{min-width:72px;font-size:.64rem}.dl-row strong{font-size:3.9rem}.hero{padding-top:9rem}.floral-top{width:62vw;right:-22%;top:-2%}.floral-bottom{width:56vw;left:-24%;bottom:-2%}.gate-floral{width:78vw}.gate-floral-a{right:-30%}.gate-floral-b{left:-32%}.countdown{gap:6px}}
+@media(max-width:520px){.section-pad{padding:4rem 16px}.form-row{grid-template-columns:1fr}.dl-row{gap:.6rem}.dl-row span{min-width:72px;font-size:.64rem}.dl-row strong{font-size:3.9rem}.hero{padding-top:9rem}.floral-top{width:62vw;right:-22%;top:-2%}.floral-bottom{width:56vw;left:-24%;bottom:-2%}.gate-floral{width:78vw}.gate-floral-a{right:-30%}.gate-floral-b{left:-32%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.envelope *,.invitation-gate{transition-duration:.01ms!important}.open-label{animation:none}}
+
+/* ============================================================
+   MOVIMIENTO — cada elemento con su propio ritmo
+   ============================================================ */
+/* Flores que se mecen: duración y retraso distintos para que nunca vayan al mismo tiempo */
+.floral-top,.gate-floral-a{transform-origin:85% 15%;animation:swayA 7.5s ease-in-out infinite}
+.floral-bottom,.gate-floral-b{transform-origin:15% 85%;animation:swayB 9s ease-in-out -2.5s infinite}
+@keyframes swayA{0%,100%{rotate:0deg;translate:0 0}50%{rotate:-2.4deg;translate:-4px 3px}}
+@keyframes swayB{0%,100%{rotate:0deg;translate:0 0}50%{rotate:2deg;translate:4px -3px}}
+
+/* Sobre que flota y sello con brillo */
+.envelope{animation:float 5s ease-in-out infinite}
+@keyframes float{50%{translate:0 -8px}}
+.is-opening .envelope{animation-play-state:paused}
+.wax-seal b{position:relative;z-index:1}
+.wax-seal{background-size:100% 100%}
+.wax-seal:before{animation:sealRing 3s ease-in-out infinite}
+@keyframes sealRing{50%{transform:scale(1.08);opacity:.4}}
+.wax-seal i.shine{position:absolute;inset:0;border-radius:50%;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.65) 50%,transparent 65%) -150% 0/250% 100% no-repeat;animation:shine 3.6s ease-in-out 1s infinite}
+@keyframes shine{0%,55%{background-position:-150% 0}100%{background-position:150% 0}}
+
+/* Pétalos que caen, cada uno con su tamaño, velocidad y vaivén */
+.petals{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
+.petal{position:absolute;top:-40px;width:var(--s);height:calc(var(--s)*.8);border-radius:70% 0 70% 0;background:radial-gradient(ellipse at 30% 30%,var(--c1),var(--c2));opacity:0;animation:fall var(--d) linear var(--dl) infinite}
+.petal:after{content:"";position:absolute;inset:0;border-radius:inherit;animation:spin var(--sp) ease-in-out infinite alternate}
+@keyframes fall{0%{opacity:0;transform:translate(0,-5vh) rotate(0)}8%{opacity:.85}25%{transform:translate(var(--x1),25vh) rotate(110deg)}50%{transform:translate(var(--x2),50vh) rotate(200deg)}75%{transform:translate(var(--x1),75vh) rotate(290deg)}92%{opacity:.7}100%{opacity:0;transform:translate(var(--x2),105vh) rotate(380deg)}}
+.petal.gold{border-radius:50%;width:calc(var(--s)*.35);height:calc(var(--s)*.35);background:radial-gradient(circle,#fff6d8,var(--gold) 60%,transparent 70%);box-shadow:0 0 6px rgba(234,214,160,.9)}
+
+/* Aparecer al bajar */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1);transition-delay:var(--rd,0s)}
+.reveal.in{opacity:1;transform:none}
+.reveal.zoom{transform:scale(.92)}
+.reveal.zoom.in{transform:none}
+
+/* Títulos manuscritos que se "escriben" de izquierda a derecha */
+.write{clip-path:inset(-20% 100% -30% 0);transition:clip-path 1.8s cubic-bezier(.6,.1,.3,1);transition-delay:var(--rd,0s)}
+.write.in{clip-path:inset(-20% -5% -30% 0)}
+
+/* Tarjetas: flores en la esquina, ícono que late, brillo dorado */
+.info-card:before{content:"";position:absolute;width:150px;height:150px;top:-48px;right:-58px;background:url(../imagenes/invitacion/flores-editoriales.png) center/contain no-repeat;transform-origin:30% 70%;animation:swayA 8s ease-in-out infinite;z-index:2;pointer-events:none}
+.card-list>.info-card:nth-child(even):before{right:auto;left:-58px;transform:scaleX(-1);animation-duration:9.5s;animation-delay:-3s}
+.info-icon{animation:iconPulse 3.2s ease-in-out infinite}
+.card-list>.info-card:nth-child(even) .info-icon{animation-delay:-1.6s}
+@keyframes iconPulse{0%,100%{box-shadow:0 0 0 1px var(--gold),0 0 0 0 rgba(198,161,91,.5)}50%{box-shadow:0 0 0 1px var(--gold),0 0 0 9px rgba(198,161,91,0)}}
+.gold-button,.primary-button{background-size:100% 100%;position:relative;overflow:hidden}
+.gold-button:after,.primary-button:after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%) -200% 0/200% 100% no-repeat;animation:shine 4s ease-in-out infinite}
+
+/* Monograma y adornos */
+.monogram{animation:glow 4s ease-in-out infinite}
+@keyframes glow{50%{text-shadow:0 0 14px rgba(198,161,91,.55)}}
+.hero h1 b{display:block;animation:amp 5s ease-in-out infinite}
+@keyframes amp{50%{transform:scale(1.08) rotate(-4deg)}}
+.dl-row strong{animation:glow 5s ease-in-out 1s infinite}
+.scroll-cue i{display:inline-block;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(5px)}}
+
+@media(max-width:520px){.info-card:before{width:120px;height:120px;top:-40px;right:-40px}.card-list>.info-card:nth-child(even):before{left:-40px}}
+@media(prefers-reduced-motion:reduce){.floral,.gate-floral,.envelope,.wax-seal:before,.wax-seal i.shine,.info-card:before,.info-icon,.gold-button:after,.primary-button:after,.monogram,.hero h1 b,.dl-row strong,.scroll-cue i{animation:none!important}.petals{display:none}.reveal,.write{opacity:1!important;transform:none!important;clip-path:none!important;transition:none!important}}
