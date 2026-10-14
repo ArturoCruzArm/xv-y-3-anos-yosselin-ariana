@@ -1,10 +1,10 @@
-:root{--wine:#6b1e2e;--wine-dark:#4a1220;--wine-soft:#8a3446;--rose:#c98a93;--blush:#f1dcd9;--paper:#f7f1e6;--paper-2:#efe6d6;--ink:#3b2a2e;--gold:#c6a15b;--gold-light:#ead6a0;--gold-dark:#9a7633;--line:rgba(107,30,46,.2);--script:"Great Vibes",cursive;--serif:"Cormorant Garamond",Georgia,serif;--caps:Cinzel,Georgia,serif;--sans:Manrope,system-ui,sans-serif}
+:root{--wine:#6b1e2e;--wine-dark:#4a1220;--wine-soft:#8a3446;--rose:#c98a93;--blush:#f1dcd9;--paper:#f8e6e6;--paper-2:#f1d9da;--ink:#3b2a2e;--gold:#c6a15b;--gold-light:#ead6a0;--gold-dark:#9a7633;--line:rgba(107,30,46,.2);--script:"Great Vibes",cursive;--serif:"Cormorant Garamond",Georgia,serif;--caps:Cinzel,Georgia,serif;--sans:Manrope,system-ui,sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
 body{background:var(--paper);color:var(--ink);font:400 1.12rem/1.6 var(--serif);overflow-x:hidden;-webkit-font-smoothing:antialiased}
-body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 0,#fbf7ef 0,transparent 60%),radial-gradient(ellipse at 50% 100%,#efe4d2 0,transparent 55%),var(--paper)}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 0,#fdf2f2 0,transparent 60%),radial-gradient(ellipse at 50% 100%,#f2d6d8 0,transparent 55%),var(--paper)}
 body.is-locked{overflow:hidden}
 /* Papel con textura: grano fino + fibras alargadas */
-.paper-noise{position:fixed;inset:0;pointer-events:none;z-index:50;mix-blend-mode:multiply;opacity:.55;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .3 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .42 0 0 0 0 .32 0 0 0 .22 -.04'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E")}
+.paper-noise{position:fixed;inset:0;pointer-events:none;z-index:50;mix-blend-mode:multiply;opacity:.55;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .32 0 0 0 0 .34 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .36 0 0 0 0 .38 0 0 0 .2 -.04'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E")}
 
 .eyebrow{font:500 .7rem/1.6 var(--caps);letter-spacing:.24em;text-transform:uppercase;color:var(--wine)}
 h2{font:400 clamp(2.6rem,9vw,3.8rem)/1.05 var(--script);color:var(--wine)}
@@ -20,7 +20,7 @@ main>section.personalized:before,main>section.personalized:after{display:none}
 
 /* ── Sobre de entrada ── */
 .invitation-gate{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--paper);perspective:1200px;transition:opacity .8s ease;overflow:hidden;padding:20px}
-.invitation-gate:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#fdfaf3 0,transparent 65%)}
+.invitation-gate:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#fdf1f1 0,transparent 65%)}
 .gate-floral{position:absolute;width:min(62vw,420px);pointer-events:none;opacity:.95}
 .gate-floral-a{top:-9%;right:-14%;transform:rotate(8deg)}
 .gate-floral-b{bottom:-10%;left:-16%;transform:rotate(188deg)}
@@ -149,7 +149,7 @@ textarea{resize:vertical}
 
 /* ── Pase con QR ── */
 .pass-section h2{margin:.5rem 0 2rem}
-.pass-card{max-width:340px;margin:auto;background:#fffaf2;border:1px solid var(--gold);border-radius:14px;overflow:hidden;box-shadow:0 18px 36px rgba(74,18,32,.16)}
+.pass-card{max-width:340px;margin:auto;background:#fff6f6;border:1px solid var(--gold);border-radius:14px;overflow:hidden;box-shadow:0 18px 36px rgba(74,18,32,.16)}
 .pass-head{display:flex;justify-content:space-between;align-items:center;background:var(--wine);color:#fbf3ea;padding:.8rem 1.2rem}
 .pass-head span{font:500 .6rem var(--caps);letter-spacing:.22em;text-transform:uppercase}
 .pass-head b{font:400 1.6rem/1 var(--script);color:var(--gold-light)}
