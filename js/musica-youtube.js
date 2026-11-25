@@ -3,6 +3,7 @@
 // para que el sobre y el botón de música no tengan que saber de dónde viene.
 window.musicaYT = (function () {
     const VIDEO = '2Vv-BfVoq4g'; // Ed Sheeran - Perfect (Official Music Video)
+    const INICIO = 19; // segundo donde Ed empieza a cantar ("I found a love...")
     let player = null, listo = false, quiereSonar = false;
     const esperando = [];
 
@@ -28,14 +29,14 @@ window.musicaYT = (function () {
     window.onYouTubeIframeAPIReady = function () {
         player = new YT.Player('ytPlayer', {
             videoId: VIDEO,
-            playerVars: { playsinline: 1, rel: 0, modestbranding: 1, loop: 1, playlist: VIDEO },
+            playerVars: { playsinline: 1, rel: 0, modestbranding: 1, start: INICIO },
             events: {
                 onReady() { listo = true; if (quiereSonar) player.playVideo(); },
                 onStateChange(e) {
                     const sonando = e.data === YT.PlayerState.PLAYING;
                     api.paused = !sonando;
                     if (sonando) esperando.splice(0).forEach(f => f());
-                    if (e.data === YT.PlayerState.ENDED) player.playVideo();
+                    if (e.data === YT.PlayerState.ENDED) { player.seekTo(INICIO, true); player.playVideo(); }
                     if (api.onchange) api.onchange(sonando);
                 }
             }
